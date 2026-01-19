@@ -13,22 +13,58 @@ Plan d'implémentation des améliorations UX, organisé par catégorie d'impact.
 
 ## Phase 1 : Quick Wins (Impact Élevé / Effort Faible)
 
-### 1.1 Corrections Inline
-> L'IA souligne les erreurs et montre la correction en temps réel
+### 1.0 Mode Correction (Toggle) ✅
+> Basculer entre mode conversation naturelle et mode correction explicite
 
-**Objectif :** Permettre à l'utilisateur de voir ses erreurs et apprendre
+**Objectif :** Permettre à l'utilisateur de choisir entre une conversation fluide ou des corrections détaillées
+
+**Implémentation terminée :**
+- [x] Ajout state `correctionMode` dans page.tsx
+- [x] Toggle dans la sidebar (icône MessageCircle/PenLine)
+- [x] Indicateur de mode sur mobile (header) et desktop (panneau VoiceOrb)
+- [x] Passage du mode à l'API via `body: { correctionMode }`
+- [x] Deux system prompts distincts dans route.ts
+
+**Deux modes disponibles :**
+
+| Mode | Icône | Couleur | Comportement |
+|------|-------|---------|--------------|
+| Conversation | `MessageCircle` | Bleu | Corrections subtiles (méthode "sandwich") |
+| Correction | `PenLine` | Orange | Corrections explicites avec format structuré |
+
+**Format Mode Correction :**
+```
+You said: "I go to the cinema yesterday"
+Correct form: "I went to the cinema yesterday"
+Why: Use past tense 'went' for actions that happened in the past.
+```
+
+**Fichiers modifiés :**
+- `src/app/page.tsx` - UI toggle et state
+- `src/app/api/chat/route.ts` - Dual system prompts
+
+---
+
+### 1.1 Corrections Inline (Visuel)
+> Affichage visuel des corrections avec mise en forme (rouge barré → vert)
+
+**Objectif :** Amélioration visuelle du mode Correction avec highlighting
+
+**Prérequis :** Mode Correction (1.0) ✅
 
 **Todolist :**
-- [ ] Modifier le system prompt pour demander des corrections formatées (JSON ou markdown)
-- [ ] Créer un composant `CorrectionHighlight` pour afficher les erreurs en rouge barré
-- [ ] Afficher la correction en vert à côté
-- [ ] Ajouter un tooltip explicatif sur chaque correction
+- [ ] Parser les corrections de l'IA pour extraire "You said" / "Correct form"
+- [ ] Créer un composant `CorrectionHighlight` pour afficher :
+  - Texte erroné en ~~rouge barré~~
+  - Texte correct en **vert**
+- [ ] Ajouter un tooltip explicatif sur chaque correction (le "Why")
 - [ ] Tester avec différents types d'erreurs (grammaire, orthographe, vocabulaire)
+- [ ] Style accessible (pas uniquement basé sur la couleur)
 
-**Format attendu de l'IA :**
+**Exemple visuel :**
 ```
-Your sentence: "I go to school yesterday"
-Correction: "I **went** to school yesterday" (past tense needed)
+"I ~~go~~ went to the cinema yesterday"
+       ↑ tooltip: "Use past tense for completed actions"
 ```
 
 ---
@@ -533,8 +569,8 @@ Correction: "went" instead of "go"
 
 | Semaine | Phase | Features |
 |---------|-------|----------|
-| 1 | Quick Wins | Corrections inline, Mobile responsive ✅ |
-| 2 | Quick Wins + IA | Suggestions réponses, Contrôle vitesse, Niveau adaptatif |
+| 1 | Quick Wins | Mode Correction ✅, Mobile responsive ✅ |
+| 2 | Quick Wins + IA | Corrections inline visuel, Suggestions réponses, Contrôle vitesse, Niveau adaptatif |
 | 3 | IA | Corrections formatées, Nouveaux outils (grammar, pronunciation) |
 | 4 | IA + Engagement | Paramètres génération, Mémoire contextuelle, Streak counter |
 | 5 | Engagement | Niveau difficulté UI, Vocabulaire, Score session |
@@ -574,4 +610,12 @@ Correction: "went" instead of "go"
 
 ---
 
-*Dernière mise à jour: Janvier 2026*
+*Dernière mise à jour: 19 Janvier 2026*
+
+---
+
+## Changelog
+
+### 19 Janvier 2026
+- ✅ **1.0 Mode Correction** - Toggle entre conversation naturelle et corrections explicites
+- ✅ **1.2 Mobile Responsive** - Layout adaptatif avec header/footer fixes
