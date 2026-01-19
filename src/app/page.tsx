@@ -17,6 +17,8 @@ import {
   Plane,
   BookOpen,
   Loader2,
+  Menu,
+  X,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -31,6 +33,9 @@ export default function Home() {
 
   // Selected category
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Mobile sidebar state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // useChat hook with new API
   const { messages, sendMessage, status, error, setMessages } = useChat({
@@ -245,6 +250,7 @@ export default function Home() {
         localStorage.setItem("english-practice-session", data.sessionId);
         setMessages([]);
         lastSavedMessageCount.current = 0;
+        setSidebarOpen(false);
       }
     } catch (e) {
       console.error("Error creating new session:", e);
@@ -283,11 +289,26 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar */}
-      <aside className="w-64 bg-card border-r border-border flex flex-col">
-        {/* Logo */}
-        <div className="p-4 border-b border-border">
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - Desktop: always visible, Mobile: drawer */}
+      <aside
+        className={`
+          fixed lg:static inset-y-0 left-0 z-50
+          w-64 bg-card border-r border-border flex flex-col
+          transform transition-transform duration-200 ease-in-out
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+        `}
+      >
+        {/* Logo + Close button on mobile */}
+        <div className="p-4 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded">
               <Languages size={24} className="text-primary" />
@@ -297,15 +318,22 @@ export default function Home() {
               <p className="text-xs text-muted-foreground">Learn by chatting</p>
             </div>
           </div>
+          {/* Close button - mobile only */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-2 rounded hover:bg-muted text-muted-foreground"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* New Chat Button */}
         <div className="p-3">
           <button
             onClick={startNewChat}
-            className="w-full flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-3 py-3 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors min-h-[44px]"
           >
-            <Plus size={16} />
+            <Plus size={18} />
             New Chat
           </button>
         </div>
@@ -318,8 +346,11 @@ export default function Home() {
           {categories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setSelectedCategory(cat.id === selectedCategory ? null : cat.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded text-sm transition-colors ${
+              onClick={() => {
+                setSelectedCategory(cat.id === selectedCategory ? null : cat.id);
+                setSidebarOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded text-sm transition-colors min-h-[44px] ${
                 selectedCategory === cat.id
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -335,7 +366,7 @@ export default function Home() {
         <div className="p-3 border-t border-border space-y-2">
           <button
             onClick={() => setVoiceEnabled(!voiceEnabled)}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded text-sm transition-colors ${
+            className={`w-full flex items-center gap-3 px-3 py-3 rounded text-sm transition-colors min-h-[44px] ${
               voiceEnabled
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:bg-muted"
@@ -352,9 +383,9 @@ export default function Home() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex">
-        {/* Left Panel - Voice Orb */}
-        <div className="w-80 bg-muted/30 border-r border-border flex flex-col items-center justify-center p-8">
+      <main className="flex-1 flex flex-col lg:flex-row min-w-0">
+        {/* Left Panel - Voice Orb (hidden on mobile, visible on lg+) */}
+        <div className="hidden lg:flex w-80 bg-muted/30 border-r border-border flex-col items-center justify-center p-8">
           <BigVoiceOrb
             isSpeaking={isSpeaking}
             isListening={isListening}
@@ -377,7 +408,7 @@ export default function Home() {
           {/* Mic button */}
           <button
             onClick={isListening ? stopListening : startListening}
-            className={`mt-6 p-4 rounded transition-all ${
+            className={`mt-6 p-4 rounded transition-all min-h-[56px] min-w-[56px] ${
               isListening
                 ? "bg-red-500 text-white animate-pulse"
                 : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
@@ -389,15 +420,62 @@ export default function Home() {
         </div>
 
         {/* Right Panel - Chat */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Mobile Header */}
+          <header className="lg:hidden flex items-center justify-between p-3 border-b border-border bg-card">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 rounded hover:bg-muted text-foreground min-h-[44px] min-w-[44px] flex items-center justify-center"
+            >
+              <Menu size={24} />
+            </button>
+
+            {/* Mini Voice Orb for mobile */}
+            <MiniVoiceOrb
+              isSpeaking={isSpeaking}
+              isListening={isListening}
+              onStop={stopSpeaking}
+            />
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setVoiceEnabled(!voiceEnabled)}
+                className={`p-2 rounded min-h-[44px] min-w-[44px] flex items-center justify-center ${
+                  voiceEnabled ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                {voiceEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+              </button>
+              <ThemeToggle />
+            </div>
+          </header>
+
           {/* Chat Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {/* Welcome message if no messages */}
             {messages.length === 0 && (
               <div className="text-center py-12">
+                <div className="lg:hidden mb-4">
+                  <div className="inline-flex p-3 bg-primary/10 rounded-full">
+                    <Languages size={32} className="text-primary" />
+                  </div>
+                </div>
                 <p className="text-muted-foreground">
                   Start a conversation or select a category
                 </p>
+                {/* Quick category buttons on mobile */}
+                <div className="lg:hidden flex flex-wrap justify-center gap-2 mt-4">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.id)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded text-sm ${cat.bgColor} ${cat.color}`}
+                    >
+                      <cat.icon size={16} />
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -412,7 +490,7 @@ export default function Home() {
                   }`}
                 >
                   <div
-                    className={`max-w-[80%] rounded px-3 py-2 ${
+                    className={`max-w-[85%] sm:max-w-[80%] rounded px-3 py-2 ${
                       message.role === "user"
                         ? "bg-primary text-primary-foreground"
                         : "bg-card border border-border"
@@ -425,10 +503,10 @@ export default function Home() {
                         {voiceEnabled && (
                           <button
                             onClick={() => speakText(messageText)}
-                            className="text-muted-foreground hover:text-primary transition-colors ml-auto"
+                            className="text-muted-foreground hover:text-primary transition-colors ml-auto p-1"
                             title="Listen again"
                           >
-                            <Volume2 size={12} />
+                            <Volume2 size={14} />
                           </button>
                         )}
                       </div>
@@ -471,29 +549,51 @@ export default function Home() {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-border p-4">
+          <div className="border-t border-border p-3 sm:p-4 bg-card">
             <form onSubmit={handleSubmit} className="flex gap-2">
+              {/* Mic button - visible on mobile */}
+              <button
+                type="button"
+                onClick={isListening ? stopListening : startListening}
+                className={`lg:hidden p-3 rounded transition-all min-h-[44px] min-w-[44px] flex items-center justify-center ${
+                  isListening
+                    ? "bg-red-500 text-white animate-pulse"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                }`}
+              >
+                {isListening ? <Square size={20} /> : <Mic size={20} />}
+              </button>
+
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={isListening ? "Listening..." : "Type in English..."}
-                className="flex-1 px-3 py-2 border border-border rounded bg-background text-foreground placeholder-muted-foreground text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                className="flex-1 px-3 py-3 border border-border rounded bg-background text-foreground placeholder-muted-foreground text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[44px]"
                 disabled={isListening || isLoading}
               />
+
               <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded font-medium text-sm hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                className="px-4 py-3 bg-primary text-primary-foreground rounded font-medium text-sm hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 min-h-[44px] min-w-[44px]"
               >
                 {isLoading ? (
-                  <Loader2 size={16} className="animate-spin" />
+                  <Loader2 size={18} className="animate-spin" />
                 ) : (
-                  <Send size={16} />
+                  <Send size={18} />
                 )}
-                Send
+                <span className="hidden sm:inline">Send</span>
               </button>
             </form>
+
+            {/* Listening indicator */}
+            {isListening && (
+              <div className="mt-2 text-center text-sm text-red-500 animate-pulse flex items-center justify-center gap-2">
+                <Mic size={14} />
+                Speak now in English...
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -501,7 +601,7 @@ export default function Home() {
   );
 }
 
-// Big Voice Orb for the left panel
+// Big Voice Orb for desktop left panel
 function BigVoiceOrb({
   isSpeaking,
   isListening,
@@ -520,8 +620,7 @@ function BigVoiceOrb({
         bg-gradient-to-br from-primary to-secondary
         flex items-center justify-center
         transition-all duration-300
-        ${isSpeaking ? "cursor-pointer shadow-[0_0_60px_rgba(var(--orb-glow),0.5)]" : "cursor-default"}
-        ${isSpeaking ? "animate-pulse" : ""}
+        ${isSpeaking ? "cursor-pointer" : "cursor-default"}
         ${isListening ? "ring-4 ring-red-500 ring-opacity-50" : ""}
       `}
       style={{
@@ -554,6 +653,58 @@ function BigVoiceOrb({
         </div>
       ) : (
         <Volume2 size={48} className="text-white/80" />
+      )}
+    </button>
+  );
+}
+
+// Mini Voice Orb for mobile header
+function MiniVoiceOrb({
+  isSpeaking,
+  isListening,
+  onStop,
+}: {
+  isSpeaking: boolean;
+  isListening: boolean;
+  onStop: () => void;
+}) {
+  return (
+    <button
+      onClick={isSpeaking ? onStop : undefined}
+      disabled={!isSpeaking}
+      className={`
+        relative w-10 h-10 rounded-full
+        bg-gradient-to-br from-primary to-secondary
+        flex items-center justify-center
+        transition-all duration-300
+        ${isSpeaking ? "cursor-pointer" : "cursor-default"}
+        ${isListening ? "ring-2 ring-red-500" : ""}
+      `}
+      style={{
+        boxShadow: isSpeaking
+          ? "0 0 20px rgba(var(--orb-glow), 0.4)"
+          : "0 0 10px rgba(var(--orb-glow), 0.2)",
+      }}
+    >
+      {isSpeaking && (
+        <span className="absolute inset-0 rounded-full border border-primary animate-ping opacity-30" />
+      )}
+
+      {isSpeaking ? (
+        <div className="flex items-center gap-0.5">
+          {[...Array(3)].map((_, i) => (
+            <span
+              key={i}
+              className="w-1 bg-white/90 rounded-sm animate-pulse"
+              style={{
+                animationDelay: `${i * 0.1}s`,
+                height: `${8 + Math.sin(i) * 4}px`,
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        <Volume2 size={18} className="text-white/80" />
       )}
     </button>
   );
