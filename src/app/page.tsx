@@ -174,6 +174,7 @@ export default function Home() {
   const [speechRate, setSpeechRate] = useState(0.8); // Default: Normal
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const lastSpokenMessageId = useRef<string | null>(null); // Track last spoken message
 
   // Load speech rate from localStorage on mount
   useEffect(() => {
@@ -224,14 +225,18 @@ export default function Home() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Speak the last assistant message (using clean text without suggestions)
+  // Speak the last assistant message (only new messages, not on voice toggle)
   useEffect(() => {
     if (!voiceEnabled) return;
 
     const lastMessage = messages[messages.length - 1];
     if (lastMessage?.role === "assistant" && status === "ready") {
+      // Don't re-speak if this message was already spoken
+      if (lastSpokenMessageId.current === lastMessage.id) return;
+
       const text = getMessageText(lastMessage);
       if (text) {
+        lastSpokenMessageId.current = lastMessage.id;
         speakText(text);
       }
     }
