@@ -177,6 +177,8 @@ export default function Home() {
   const [speechRate, setSpeechRate] = useState(0.9); // 0.5 to 1.5
   const [continuousMode, setContinuousMode] = useState(false);
   const continuousModeRef = useRef(false); // Ref for callbacks
+  const lastSpokenMessageId = useRef<string | null>(null); // Track last spoken message
+  const isSpeakingRef = useRef(false); // Track speaking state for callbacks
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
@@ -234,23 +236,31 @@ export default function Home() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Speak the last assistant message (using clean text without suggestions)
+  // Speak the last assistant message
   useEffect(() => {
     if (!voiceEnabled) return;
 
     const lastMessage = messages[messages.length - 1];
     if (lastMessage?.role === "assistant" && status === "ready") {
+      // Avoid speaking the same message twice
+      if (lastSpokenMessageId.current === lastMessage.id) return;
+
       const text = getMessageText(lastMessage);
       if (text) {
+        lastSpokenMessageId.current = lastMessage.id;
         speakText(text);
       }
     }
   }, [messages, status, voiceEnabled, getMessageText]);
 
   // Text-to-Speech function
-  const speakText = (text: string) => {
+  const speakText = (text: string, force: boolean = false) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
+    // Don't interrupt if already speaking (unless forced, e.g., replay button)
+    if (isSpeakingRef.current && !force) return;
+
+    // Cancel any pending speech
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -267,24 +277,37 @@ export default function Home() {
       utterance.voice = englishVoice;
     }
 
-    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+      isSpeakingRef.current = true;
+    };
     utterance.onend = () => {
       setIsSpeaking(false);
+      isSpeakingRef.current = false;
       // In continuous mode, restart listening after TTS finishes
       if (continuousModeRef.current) {
-        // Small delay to avoid overlap
+        // Delay to avoid overlap and let the audio system settle
         setTimeout(() => {
-          startListening();
-        }, 300);
+          if (continuousModeRef.current && !isSpeakingRef.current) {
+            startListening();
+          }
+        }, 500);
       }
     };
-    utterance.onerror = () => setIsSpeaking(false);
+    utterance.onerror = (e) => {
+      console.error("TTS error:", e);
+      setIsSpeaking(false);
+      isSpeakingRef.current = false;
+    };
 
     window.speechSynthesis.speak(utterance);
   };
 
   // Speech-to-Text function
   const startListening = () => {
+    // Don't start if already listening or speaking
+    if (isListening || isSpeakingRef.current) return;
+
     if (
       typeof window === "undefined" ||
       (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window))
@@ -321,8 +344,6 @@ export default function Home() {
     recognition.onerror = (event) => {
       console.error("Speech recognition error:", event.error);
       setIsListening(false);
-      // In continuous mode, don't stop on errors like "no-speech"
-      // The loop will restart via TTS onend
     };
 
     recognition.onend = () => setIsListening(false);
@@ -807,7 +828,7 @@ export default function Home() {
                         <span className="text-xs font-medium text-primary">Teacher</span>
                         {voiceEnabled && (
                           <button
-                            onClick={() => speakText(cleanText)}
+                            onClick={() => speakText(cleanText, true)}
                             className="text-muted-foreground hover:text-primary transition-colors ml-auto p-1"
                             title="Listen again"
                           >
