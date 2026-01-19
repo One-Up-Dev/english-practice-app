@@ -3,6 +3,22 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useEffect, useRef, useState, useCallback } from "react";
+import {
+  Languages,
+  Bot,
+  Mic,
+  Volume2,
+  VolumeX,
+  Plus,
+  Send,
+  Square,
+  Coffee,
+  Briefcase,
+  Plane,
+  BookOpen,
+  Loader2,
+} from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function Home() {
   // Session management
@@ -12,6 +28,9 @@ export default function Home() {
 
   // Local state for input
   const [input, setInput] = useState("");
+
+  // Selected category
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // useChat hook with new API
   const { messages, sendMessage, status, error, setMessages } = useChat({
@@ -25,18 +44,15 @@ export default function Home() {
   // Create or load session on mount
   useEffect(() => {
     const initSession = async () => {
-      // Check localStorage for existing session
       const savedSessionId = localStorage.getItem("english-practice-session");
 
       if (savedSessionId) {
-        // Try to load existing session
         try {
           const res = await fetch(`/api/sessions?id=${savedSessionId}`);
           const data = await res.json();
 
           if (data.success && data.messages?.length > 0) {
             setSessionId(savedSessionId);
-            // Convert DB messages to UI messages format
             const uiMessages = data.messages.map((msg: { id: number; role: string; content: string; created_at: string }) => ({
               id: `db-${msg.id}`,
               role: msg.role as "user" | "assistant",
@@ -52,7 +68,6 @@ export default function Home() {
         }
       }
 
-      // Create new session
       try {
         const res = await fetch("/api/sessions", { method: "POST" });
         const data = await res.json();
@@ -245,238 +260,301 @@ export default function Home() {
     }
   };
 
+  // Categories data
+  const categories = [
+    { id: "conversation", icon: Coffee, label: "Conversation", color: "text-amber-500", bgColor: "bg-amber-500/10" },
+    { id: "roleplay", icon: Briefcase, label: "Role Play", color: "text-blue-500", bgColor: "bg-blue-500/10" },
+    { id: "travel", icon: Plane, label: "Travel", color: "text-green-500", bgColor: "bg-green-500/10" },
+    { id: "quiz", icon: BookOpen, label: "Quiz", color: "text-purple-500", bgColor: "bg-purple-500/10" },
+  ];
+
   // Loading state
   if (isLoadingSession) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-50 to-white">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
-          <div className="text-4xl mb-4 animate-bounce">🇬🇧</div>
-          <p className="text-blue-600">Loading...</p>
+          <div className="mb-4">
+            <Languages size={48} className="mx-auto text-primary animate-pulse" />
+          </div>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-white">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-blue-100">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+    <div className="flex h-screen bg-background">
+      {/* Sidebar */}
+      <aside className="w-64 bg-card border-r border-border flex flex-col">
+        {/* Logo */}
+        <div className="p-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">🇬🇧</span>
-            <div>
-              <h1 className="text-xl font-bold text-blue-900">English Practice</h1>
-              <p className="text-sm text-blue-600">Learn by chatting!</p>
+            <div className="p-2 bg-primary/10 rounded">
+              <Languages size={24} className="text-primary" />
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={startNewChat}
-              className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-              title="New chat"
-            >
-              ➕
-            </button>
-            <button
-              onClick={() => setVoiceEnabled(!voiceEnabled)}
-              className={`p-2 rounded-full transition-colors ${
-                voiceEnabled
-                  ? "bg-blue-100 text-blue-600"
-                  : "bg-gray-100 text-gray-400"
-              }`}
-              title={voiceEnabled ? "Voice ON" : "Voice OFF"}
-            >
-              {voiceEnabled ? "🔊" : "🔇"}
-            </button>
+            <div>
+              <h1 className="font-bold text-foreground">English Practice</h1>
+              <p className="text-xs text-muted-foreground">Learn by chatting</p>
+            </div>
           </div>
         </div>
-      </header>
 
-      {/* Chat Messages */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
-          {/* Welcome message if no messages */}
-          {messages.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">👋</div>
-              <h2 className="text-2xl font-bold text-blue-900 mb-2">
-                Hello! I&apos;m your English teacher!
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Let&apos;s practice English together. Don&apos;t worry about mistakes!
-              </p>
-              <div className="flex flex-wrap justify-center gap-2">
-                <SuggestionButton onClick={() => setInput("Hello! My name is...")}>
-                  👋 Say hello
-                </SuggestionButton>
-                <SuggestionButton onClick={() => setInput("Can we play restaurant?")}>
-                  🍽️ Role play
-                </SuggestionButton>
-                <SuggestionButton onClick={() => setInput("Give me a quiz about animals!")}>
-                  🎯 Quiz
-                </SuggestionButton>
+        {/* New Chat Button */}
+        <div className="p-3">
+          <button
+            onClick={startNewChat}
+            className="w-full flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded text-sm font-medium hover:bg-primary/90 transition-colors"
+          >
+            <Plus size={16} />
+            New Chat
+          </button>
+        </div>
+
+        {/* Categories */}
+        <nav className="flex-1 p-3 space-y-1">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-2">
+            Categories
+          </p>
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id === selectedCategory ? null : cat.id)}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded text-sm transition-colors ${
+                selectedCategory === cat.id
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              <cat.icon size={18} className={selectedCategory === cat.id ? "text-primary" : cat.color} />
+              {cat.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Bottom controls */}
+        <div className="p-3 border-t border-border space-y-2">
+          <button
+            onClick={() => setVoiceEnabled(!voiceEnabled)}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded text-sm transition-colors ${
+              voiceEnabled
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            {voiceEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            Voice {voiceEnabled ? "ON" : "OFF"}
+          </button>
+          <div className="flex items-center justify-between px-3 py-2">
+            <span className="text-sm text-muted-foreground">Theme</span>
+            <ThemeToggle />
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex">
+        {/* Left Panel - Voice Orb */}
+        <div className="w-80 bg-muted/30 border-r border-border flex flex-col items-center justify-center p-8">
+          <BigVoiceOrb
+            isSpeaking={isSpeaking}
+            isListening={isListening}
+            onStop={stopSpeaking}
+          />
+
+          {/* Status text */}
+          <div className="mt-6 text-center">
+            {isSpeaking && (
+              <p className="text-sm text-primary animate-pulse">Speaking...</p>
+            )}
+            {isListening && (
+              <p className="text-sm text-red-500 animate-pulse">Listening...</p>
+            )}
+            {!isSpeaking && !isListening && (
+              <p className="text-sm text-muted-foreground">Ready to chat</p>
+            )}
+          </div>
+
+          {/* Mic button */}
+          <button
+            onClick={isListening ? stopListening : startListening}
+            className={`mt-6 p-4 rounded transition-all ${
+              isListening
+                ? "bg-red-500 text-white animate-pulse"
+                : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+            }`}
+            title={isListening ? "Stop recording" : "Speak"}
+          >
+            {isListening ? <Square size={24} /> : <Mic size={24} />}
+          </button>
+        </div>
+
+        {/* Right Panel - Chat */}
+        <div className="flex-1 flex flex-col">
+          {/* Chat Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {/* Welcome message if no messages */}
+            {messages.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">
+                  Start a conversation or select a category
+                </p>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Messages */}
-          {messages.map((message) => {
-            const messageText = getMessageText(message);
-            return (
-              <div
-                key={message.id}
-                className={`flex ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
+            {/* Messages */}
+            {messages.map((message) => {
+              const messageText = getMessageText(message);
+              return (
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                    message.role === "user"
-                      ? "bg-blue-500 text-white rounded-br-md"
-                      : "bg-white shadow-md border border-gray-100 rounded-bl-md"
+                  key={message.id}
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
-                  {message.role === "assistant" && (
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-lg">🤖</span>
-                      <span className="text-xs font-medium text-blue-600">
-                        Teacher
-                      </span>
-                      {voiceEnabled && (
-                        <button
-                          onClick={() => speakText(messageText)}
-                          className="text-xs text-gray-400 hover:text-blue-500"
-                          title="Listen again"
-                        >
-                          🔊
-                        </button>
-                      )}
-                    </div>
-                  )}
-                  <p
-                    className={`${
-                      message.role === "user" ? "text-white" : "text-gray-800"
+                  <div
+                    className={`max-w-[80%] rounded px-3 py-2 ${
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card border border-border"
                     }`}
                   >
-                    {messageText}
-                  </p>
+                    {message.role === "assistant" && (
+                      <div className="flex items-center gap-2 mb-1">
+                        <Bot size={14} className="text-primary" />
+                        <span className="text-xs font-medium text-primary">Teacher</span>
+                        {voiceEnabled && (
+                          <button
+                            onClick={() => speakText(messageText)}
+                            className="text-muted-foreground hover:text-primary transition-colors ml-auto"
+                            title="Listen again"
+                          >
+                            <Volume2 size={12} />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    <p className={`text-sm ${
+                      message.role === "user" ? "text-primary-foreground" : "text-card-foreground"
+                    }`}>
+                      {messageText}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
-          {/* Loading indicator */}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-white shadow-md border border-gray-100 rounded-2xl rounded-bl-md px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🤖</span>
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" />
-                    <span
-                      className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
-                      style={{ animationDelay: "0.1s" }}
-                    />
-                    <span
-                      className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
-                      style={{ animationDelay: "0.2s" }}
-                    />
+            {/* Loading indicator */}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-card border border-border rounded px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <Bot size={14} className="text-primary" />
+                    <div className="flex gap-1">
+                      <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" />
+                      <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} />
+                      <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Speaking indicator */}
-          {isSpeaking && (
-            <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
-              <span className="animate-pulse">🔊</span>
-              <span className="text-sm">Speaking...</span>
+            {/* Error display */}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 px-3 py-2 rounded text-sm">
+                <p className="font-medium">Error:</p>
+                <p>{error.message}</p>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Area */}
+          <div className="border-t border-border p-4">
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={isListening ? "Listening..." : "Type in English..."}
+                className="flex-1 px-3 py-2 border border-border rounded bg-background text-foreground placeholder-muted-foreground text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                disabled={isListening || isLoading}
+              />
               <button
-                onClick={stopSpeaking}
-                className="ml-2 text-xs bg-white/20 px-2 py-1 rounded-full hover:bg-white/30"
+                type="submit"
+                disabled={isLoading || !input.trim()}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded font-medium text-sm hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
-                Stop
+                {isLoading ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Send size={16} />
+                )}
+                Send
               </button>
-            </div>
-          )}
-
-          {/* Error display */}
-          {error && (
-            <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg">
-              <p className="font-medium">Error:</p>
-              <p className="text-sm">{error.message}</p>
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
+            </form>
+          </div>
         </div>
       </main>
-
-      {/* Input Area */}
-      <footer className="bg-white border-t border-gray-200 shadow-lg">
-        <div className="max-w-3xl mx-auto px-4 py-4">
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            {/* Microphone button */}
-            <button
-              type="button"
-              onClick={isListening ? stopListening : startListening}
-              className={`p-3 rounded-full transition-all ${
-                isListening
-                  ? "bg-red-500 text-white animate-pulse"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-              title={isListening ? "Stop recording" : "Speak"}
-            >
-              {isListening ? "⏹️" : "🎤"}
-            </button>
-
-            {/* Text input */}
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={isListening ? "Listening..." : "Type in English..."}
-              className="flex-1 px-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-400"
-              disabled={isListening || isLoading}
-            />
-
-            {/* Send button */}
-            <button
-              type="submit"
-              disabled={isLoading || !input.trim()}
-              className="px-6 py-3 bg-blue-500 text-white rounded-full font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Send
-            </button>
-          </form>
-
-          {/* Listening indicator */}
-          {isListening && (
-            <div className="mt-2 text-center text-sm text-red-500 animate-pulse">
-              🎤 Speak now in English...
-            </div>
-          )}
-        </div>
-      </footer>
     </div>
   );
 }
 
-// Suggestion button component
-function SuggestionButton({
-  children,
-  onClick,
+// Big Voice Orb for the left panel
+function BigVoiceOrb({
+  isSpeaking,
+  isListening,
+  onStop,
 }: {
-  children: React.ReactNode;
-  onClick: () => void;
+  isSpeaking: boolean;
+  isListening: boolean;
+  onStop: () => void;
 }) {
   return (
     <button
-      onClick={onClick}
-      className="px-4 py-2 bg-white border border-blue-200 rounded-full text-sm text-blue-700 hover:bg-blue-50 transition-colors"
+      onClick={isSpeaking ? onStop : undefined}
+      disabled={!isSpeaking}
+      className={`
+        relative w-40 h-40 rounded-full
+        bg-gradient-to-br from-primary to-secondary
+        flex items-center justify-center
+        transition-all duration-300
+        ${isSpeaking ? "cursor-pointer shadow-[0_0_60px_rgba(var(--orb-glow),0.5)]" : "cursor-default"}
+        ${isSpeaking ? "animate-pulse" : ""}
+        ${isListening ? "ring-4 ring-red-500 ring-opacity-50" : ""}
+      `}
+      style={{
+        boxShadow: isSpeaking
+          ? "0 0 40px rgba(var(--orb-glow), 0.4), 0 0 80px rgba(var(--orb-glow), 0.2)"
+          : "0 0 20px rgba(var(--orb-glow), 0.2)",
+      }}
     >
-      {children}
+      {/* Pulsing rings when speaking */}
+      {isSpeaking && (
+        <>
+          <span className="absolute inset-0 rounded-full border-2 border-primary animate-ping opacity-30" />
+          <span className="absolute inset-0 rounded-full border-2 border-primary animate-ping opacity-20" style={{ animationDelay: "0.3s" }} />
+        </>
+      )}
+
+      {/* Content */}
+      {isSpeaking ? (
+        <div className="flex items-center gap-1">
+          {[...Array(5)].map((_, i) => (
+            <span
+              key={i}
+              className="w-2 h-8 bg-white/90 rounded-sm animate-pulse"
+              style={{
+                animationDelay: `${i * 0.1}s`,
+                height: `${20 + Math.sin(i) * 10}px`,
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        <Volume2 size={48} className="text-white/80" />
+      )}
     </button>
   );
 }

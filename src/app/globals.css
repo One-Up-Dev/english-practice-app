@@ -1,26 +1,247 @@
 @import "tailwindcss";
 
+/* ========================================
+   CSS Variables - Light/Dark Theme
+   ======================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light Mode Colors */
+  --background: 248 250 252;       /* slate-50 */
+  --foreground: 15 23 42;          /* slate-900 */
+  --card: 255 255 255;             /* white */
+  --card-foreground: 15 23 42;     /* slate-900 */
+  --primary: 59 130 246;           /* blue-500 */
+  --primary-foreground: 255 255 255;
+  --secondary: 99 102 241;         /* indigo-500 */
+  --secondary-foreground: 255 255 255;
+  --muted: 241 245 249;            /* slate-100 */
+  --muted-foreground: 100 116 139; /* slate-500 */
+  --border: 226 232 240;           /* slate-200 */
+  --ring: 59 130 246;              /* blue-500 */
+
+  /* Voice Orb specific */
+  --orb-primary: 59 130 246;       /* blue-500 */
+  --orb-secondary: 99 102 241;     /* indigo-500 */
+  --orb-glow: 147 197 253;         /* blue-300 */
 }
+
+.dark {
+  /* Dark Mode Colors */
+  --background: 15 23 42;          /* slate-900 */
+  --foreground: 248 250 252;       /* slate-50 */
+  --card: 30 41 59;                /* slate-800 */
+  --card-foreground: 248 250 252;  /* slate-50 */
+  --primary: 96 165 250;           /* blue-400 */
+  --primary-foreground: 15 23 42;
+  --secondary: 129 140 248;        /* indigo-400 */
+  --secondary-foreground: 15 23 42;
+  --muted: 51 65 85;               /* slate-700 */
+  --muted-foreground: 148 163 184; /* slate-400 */
+  --border: 51 65 85;              /* slate-700 */
+  --ring: 96 165 250;              /* blue-400 */
+
+  /* Voice Orb specific - brighter in dark mode */
+  --orb-primary: 96 165 250;       /* blue-400 */
+  --orb-secondary: 129 140 248;    /* indigo-400 */
+  --orb-glow: 59 130 246;          /* blue-500 */
+}
+
+/* ========================================
+   Tailwind Theme Integration
+   ======================================== */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+  --color-card: rgb(var(--card));
+  --color-card-foreground: rgb(var(--card-foreground));
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+  --color-secondary: rgb(var(--secondary));
+  --color-secondary-foreground: rgb(var(--secondary-foreground));
+  --color-muted: rgb(var(--muted));
+  --color-muted-foreground: rgb(var(--muted-foreground));
+  --color-border: rgb(var(--border));
+  --color-ring: rgb(var(--ring));
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Override default border-radius to be minimal */
+  --radius-sm: 2px;
+  --radius: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+  --radius-3xl: 2px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ========================================
+   Base Styles
+   ======================================== */
+
+body {
+  background: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ========================================
+   Voice Orb Animations
+   ======================================== */
+
+/* Breathing animation for idle state */
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Pulse animation for speaking state */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* Glow pulse for active speaking */
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 20px rgba(var(--orb-glow), 0.4),
+      0 0 40px rgba(var(--orb-glow), 0.2),
+      0 0 60px rgba(var(--orb-glow), 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 30px rgba(var(--orb-glow), 0.6),
+      0 0 60px rgba(var(--orb-glow), 0.4),
+      0 0 90px rgba(var(--orb-glow), 0.2);
+  }
+}
+
+/* Wave animation for sound visualization */
+@keyframes wave {
+  0%, 100% {
+    height: 12px;
+  }
+  50% {
+    height: 24px;
+  }
+}
+
+/* Voice Orb Component Styles */
+.voice-orb {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgb(var(--orb-primary)),
+    rgb(var(--orb-secondary))
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.voice-orb--idle {
+  animation: breathe 3s ease-in-out infinite;
+}
+
+.voice-orb--speaking {
+  animation: glow-pulse 1.5s ease-in-out infinite;
+}
+
+/* Pulsing rings around the orb when speaking */
+.voice-orb__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgb(var(--orb-primary));
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+.voice-orb__ring--delay-1 {
+  animation-delay: 0.3s;
+}
+
+.voice-orb__ring--delay-2 {
+  animation-delay: 0.6s;
+}
+
+/* Sound wave bars inside orb when speaking */
+.voice-orb__wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 24px;
+}
+
+.voice-orb__bar {
+  width: 3px;
+  height: 12px;
+  background: white;
+  border-radius: 2px;
+  animation: wave 0.6s ease-in-out infinite;
+}
+
+.voice-orb__bar:nth-child(1) { animation-delay: 0s; }
+.voice-orb__bar:nth-child(2) { animation-delay: 0.1s; }
+.voice-orb__bar:nth-child(3) { animation-delay: 0.2s; }
+.voice-orb__bar:nth-child(4) { animation-delay: 0.1s; }
+.voice-orb__bar:nth-child(5) { animation-delay: 0s; }
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+
+/* Smooth transitions for theme switching */
+.transition-theme {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--muted-foreground));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--primary));
+}
+
+/* Hide scrollbar for cleaner look (optional) */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
