@@ -72,22 +72,7 @@ REMEMBER:
 - Your goal is to build their confidence in speaking English
 - Every conversation is practice - make it enjoyable
 - Mistakes are learning opportunities, not failures
-- Be genuinely interested in what they have to say
-
-RESPONSE SUGGESTIONS:
-At the end of EVERY response, provide 2-3 possible replies the learner could use.
-Format them EXACTLY like this (on a new line, after your message):
-
----SUGGESTIONS---
-First suggestion here|Second suggestion here|Third suggestion here
-
-Rules for suggestions:
-- Keep them short (3-8 words each)
-- Match the learner's level (simple vocabulary)
-- Make them relevant to your question
-- Separate with | character
-- No quotes around suggestions
-- Always include this section`;
+- Be genuinely interested in what they have to say`;
 
 // ============================================
 // LEVEL PROMPTS - Adapt language complexity
@@ -192,22 +177,7 @@ TONE:
 REMEMBER:
 - The learner WANTS explicit corrections in this mode
 - Be thorough but not overwhelming
-- Always end with a follow-up question to continue practice
-
-RESPONSE SUGGESTIONS:
-At the end of EVERY response, provide 2-3 possible replies the learner could use.
-Format them EXACTLY like this (on a new line, after your message):
-
----SUGGESTIONS---
-First suggestion here|Second suggestion here|Third suggestion here
-
-Rules for suggestions:
-- Keep them short (3-8 words each)
-- Match the learner's level (simple vocabulary)
-- Make them relevant to your question
-- Separate with | character
-- No quotes around suggestions
-- Always include this section`;
+- Always end with a follow-up question to continue practice`;
 
 // Les outils du professeur
 const teacherTools = {

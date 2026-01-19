@@ -104,25 +104,6 @@ export default function Home() {
     initSession();
   }, [setMessages]);
 
-  // Helper to parse suggestions from message text
-  const parseSuggestions = useCallback((text: string): { cleanText: string; suggestions: string[] } => {
-    const marker = "---SUGGESTIONS---";
-    const markerIndex = text.indexOf(marker);
-
-    if (markerIndex === -1) {
-      return { cleanText: text, suggestions: [] };
-    }
-
-    const cleanText = text.substring(0, markerIndex).trim();
-    const suggestionsRaw = text.substring(markerIndex + marker.length).trim();
-    const suggestions = suggestionsRaw
-      .split("|")
-      .map(s => s.trim())
-      .filter(s => s.length > 0);
-
-    return { cleanText, suggestions };
-  }, []);
-
   // Helper to get text content from message parts
   const getMessageText = useCallback((message: (typeof messages)[0]): string => {
     return message.parts
@@ -130,20 +111,6 @@ export default function Home() {
       .map((part) => (part as { type: "text"; text: string }).text)
       .join("");
   }, []);
-
-  // Get clean text (without suggestions marker) for display and TTS
-  const getCleanMessageText = useCallback((message: (typeof messages)[0]): string => {
-    const rawText = getMessageText(message);
-    return parseSuggestions(rawText).cleanText;
-  }, [getMessageText, parseSuggestions]);
-
-  // Get suggestions from last assistant message
-  const getLastSuggestions = useCallback((): string[] => {
-    const lastAssistantMessage = [...messages].reverse().find(m => m.role === "assistant");
-    if (!lastAssistantMessage) return [];
-    const rawText = getMessageText(lastAssistantMessage);
-    return parseSuggestions(rawText).suggestions;
-  }, [messages, getMessageText, parseSuggestions]);
 
   // Save new messages to database and update profile
   useEffect(() => {
@@ -273,12 +240,12 @@ export default function Home() {
 
     const lastMessage = messages[messages.length - 1];
     if (lastMessage?.role === "assistant" && status === "ready") {
-      const text = getCleanMessageText(lastMessage);
+      const text = getMessageText(lastMessage);
       if (text) {
         speakText(text);
       }
     }
-  }, [messages, status, voiceEnabled, getCleanMessageText]);
+  }, [messages, status, voiceEnabled, getMessageText]);
 
   // Text-to-Speech function
   const speakText = (text: string) => {
@@ -418,11 +385,6 @@ export default function Home() {
       sendMessage({ text: input }, { body: { correctionMode, sessionId, level, category: selectedCategory } });
       setInput("");
     }
-  };
-
-  // Handle suggestion click
-  const handleSuggestionClick = (suggestion: string) => {
-    sendMessage({ text: suggestion }, { body: { correctionMode, sessionId, level, category: selectedCategory } });
   };
 
   // Handle category selection and track interest
@@ -823,7 +785,7 @@ export default function Home() {
             {/* Messages */}
             {messages.map((message) => {
               const cleanText = message.role === "assistant"
-                ? getCleanMessageText(message)
+                ? getMessageText(message)
                 : getMessageText(message);
               return (
                 <div
@@ -870,22 +832,6 @@ export default function Home() {
                 </div>
               );
             })}
-
-            {/* Suggestion Chips - show when not loading, no input, and suggestions exist */}
-            {!isLoading && !input.trim() && getLastSuggestions().length > 0 && (
-              <div className="flex flex-wrap gap-2 py-2">
-                <span className="text-xs text-muted-foreground mr-1 self-center">Try:</span>
-                {getLastSuggestions().map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className="px-3 py-1.5 text-sm bg-muted hover:bg-muted/80 text-foreground rounded border border-border hover:border-primary/50 transition-colors"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            )}
 
             {/* Loading indicator */}
             {isLoading && (

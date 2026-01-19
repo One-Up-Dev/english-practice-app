@@ -95,32 +95,12 @@ Why: Use past tense 'went' for actions that happened in the past.
 
 ---
 
-### 1.3 Suggestions de Réponses ✅
+### 1.3 Suggestions de Réponses ❌ RETIRÉ
 > Boutons cliquables pour répondre rapidement
 
-**Objectif :** Réduire la friction, aider les débutants
+**Statut :** Feature retirée le 19 Janvier 2026
 
-**Implémentation terminée :**
-- [x] Modifier les system prompts pour générer 2-3 suggestions par réponse
-- [x] Parser les suggestions avec le marqueur `---SUGGESTIONS---`
-- [x] Afficher les suggestions comme boutons cliquables ("Try: ...")
-- [x] Au clic, envoyer la suggestion comme message utilisateur
-- [x] Masquer les suggestions quand l'utilisateur commence à taper
-- [x] TTS utilise le texte nettoyé (sans le marqueur)
-
-**Disponibilité :** Tous les modes (Conversation ET Correction)
-
-**Format utilisé :**
-```
-[Message de l'IA]
-
----SUGGESTIONS---
-I'm fine, thank you!|Not so good today.|Great, thanks!
-```
-
-**Fichiers modifiés :**
-- `src/app/api/chat/route.ts` - Instructions dans les system prompts
-- `src/app/page.tsx` - Parsing et affichage des chips
+**Raison :** Décision utilisateur de ne pas inclure cette fonctionnalité.
 
 ---
 
@@ -643,6 +623,7 @@ Correction: "went" instead of "go"
 ## Changelog
 
 ### 19 Janvier 2026
+- ❌ **1.3 Suggestions de Réponses** - Feature retirée (revert)
 - ✅ **3.1 Mode Conversation Continue** - Hands-Free Mode avec boucle vocale automatique
 - ✅ **1.5.4 Paramètres Génération** - Temperature/maxTokens auto selon mode et catégorie
 - ✅ **1.5.3 Nouveaux Outils IA** - grammarExplain, pronunciationTip, synonymSuggest
