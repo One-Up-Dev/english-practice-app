@@ -23,6 +23,7 @@ import {
   PenLine,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { CorrectionHighlight } from "@/components/CorrectionHighlight";
 
 export default function Home() {
   // Session management
@@ -649,11 +650,18 @@ export default function Home() {
                         )}
                       </div>
                     )}
-                    <p className={`text-sm whitespace-pre-wrap ${
-                      message.role === "user" ? "text-primary-foreground" : "text-card-foreground"
-                    }`}>
-                      {cleanText}
-                    </p>
+                    {/* Render with correction highlighting in Correction Mode, plain text otherwise */}
+                    {message.role === "assistant" && correctionMode ? (
+                      <div className="text-card-foreground">
+                        <CorrectionHighlight text={cleanText} />
+                      </div>
+                    ) : (
+                      <p className={`text-sm whitespace-pre-wrap ${
+                        message.role === "user" ? "text-primary-foreground" : "text-card-foreground"
+                      }`}>
+                        {cleanText}
+                      </p>
+                    )}
                   </div>
                 </div>
               );
