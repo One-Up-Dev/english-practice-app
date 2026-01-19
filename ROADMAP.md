@@ -90,6 +90,192 @@ Correction: "I **went** to school yesterday" (past tense needed)
 
 ---
 
+## Phase 1.5 : Amélioration de l'IA (Impact Élevé / Effort Moyen)
+
+### 1.5.1 Corrections Formatées pour Affichage
+> L'IA retourne les corrections dans un format parseable
+
+**Objectif :** Permettre l'affichage inline des corrections (lié à 1.1)
+
+**Todolist :**
+- [ ] Modifier le system prompt pour formater les corrections :
+  ```
+  When correcting, use this format:
+  [CORRECT: "wrong phrase" → "correct phrase" | RULE: explanation]
+  ```
+- [ ] Parser les corrections côté frontend avec regex
+- [ ] Stocker les corrections pour statistiques
+- [ ] Tester avec différents types d'erreurs
+
+**Exemple de sortie IA :**
+```
+That's interesting! [CORRECT: "I go yesterday" → "I went yesterday" | RULE: Use past tense for completed actions]
+So you went to the cinema. What movie did you see?
+```
+
+---
+
+### 1.5.2 Niveau Adaptatif
+> System prompt dynamique selon le niveau
+
+**Objectif :** Adapter le langage et la complexité au niveau de l'utilisateur
+
+**Todolist :**
+- [ ] Créer 3 variantes du system prompt (beginner, intermediate, advanced)
+- [ ] Ajouter le niveau dans le body de la requête API
+- [ ] Modifier `/api/chat/route.ts` pour utiliser le bon prompt
+- [ ] Sauvegarder le niveau en localStorage
+- [ ] UI : sélecteur dans la sidebar
+
+**System Prompts par niveau :**
+
+```typescript
+const levelPrompts = {
+  beginner: `
+    - Use very simple vocabulary (most common 1000 words)
+    - Keep sentences short (5-10 words max)
+    - Speak slowly and clearly
+    - Give lots of encouragement and positive feedback
+    - Correct gently, always praise the attempt first
+    - Use present tense mainly
+    - Avoid idioms and phrasal verbs
+  `,
+  intermediate: `
+    - Use everyday vocabulary with occasional new words
+    - Normal sentence length and structure
+    - Introduce common idioms and explain them
+    - Balance corrections with conversation flow
+    - Use all tenses naturally
+    - Challenge with follow-up questions
+  `,
+  advanced: `
+    - Use rich vocabulary including idioms and phrasal verbs
+    - Complex sentence structures are fine
+    - Focus on nuance, register, and style
+    - Correct subtle errors (articles, prepositions, collocations)
+    - Discuss abstract topics
+    - Challenge their reasoning and opinions
+  `
+};
+```
+
+---
+
+### 1.5.3 Nouveaux Outils IA
+> Étendre les capacités du professeur
+
+**Objectif :** Enrichir l'expérience d'apprentissage
+
+**Todolist :**
+- [ ] **grammarExplain** : Expliquer une règle de grammaire en détail
+  ```typescript
+  grammarExplain: tool({
+    description: "Explain a grammar rule when student asks or makes repeated errors",
+    inputSchema: z.object({
+      rule: z.string(), // "past_simple", "articles", "prepositions"
+      context: z.string() // The sentence that triggered it
+    }),
+    execute: async ({ rule, context }) => { ... }
+  })
+  ```
+- [ ] **pronunciationTip** : Donner des conseils de prononciation
+  ```typescript
+  pronunciationTip: tool({
+    description: "Give pronunciation tips for tricky words",
+    inputSchema: z.object({
+      word: z.string(),
+    }),
+    execute: async ({ word }) => {
+      // Return IPA, similar sounds, common mistakes
+    }
+  })
+  ```
+- [ ] **synonymSuggest** : Suggérer des synonymes pour enrichir le vocabulaire
+- [ ] **culturalNote** : Expliquer les différences culturelles (UK vs US)
+
+---
+
+### 1.5.4 Paramètres de Génération
+> Ajuster temperature, maxTokens, etc.
+
+**Objectif :** Optimiser la qualité et la cohérence des réponses
+
+**Todolist :**
+- [ ] Ajouter `temperature` configurable (défaut: 0.7)
+- [ ] Ajouter `maxTokens` pour limiter les réponses longues (défaut: 300)
+- [ ] Tester différentes valeurs et documenter les résultats
+- [ ] Option "mode créatif" (temperature: 1.2) pour les histoires
+- [ ] Option "mode précis" (temperature: 0.3) pour les quiz
+
+**Configuration recommandée :**
+```typescript
+// Conversation normale
+{ temperature: 0.7, maxTokens: 300 }
+
+// Quiz / Corrections
+{ temperature: 0.3, maxTokens: 200 }
+
+// Histoires / Role-play créatif
+{ temperature: 1.0, maxTokens: 500 }
+```
+
+---
+
+### 1.5.5 Mémoire Contextuelle
+> Se souvenir des sessions précédentes
+
+**Objectif :** Personnaliser l'expérience au fil du temps
+
+**Todolist :**
+- [ ] Créer table `user_profile` (interests, level, common_errors, vocabulary_learned)
+- [ ] À chaque session, générer un résumé avec l'IA
+- [ ] Injecter le résumé dans le system prompt
+- [ ] Tracker les erreurs récurrentes pour les cibler
+- [ ] Mémoriser les sujets préférés
+
+**Schema DB :**
+```sql
+CREATE TABLE user_profiles (
+  id SERIAL PRIMARY KEY,
+  session_id TEXT UNIQUE,
+  interests TEXT[], -- ['movies', 'travel', 'cooking']
+  common_errors JSONB, -- {"articles": 5, "past_tense": 3}
+  vocabulary_count INT DEFAULT 0,
+  total_messages INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+**Injection dans le prompt :**
+```
+USER CONTEXT:
+- Interests: movies, travel
+- Common errors: articles (5x), past tense (3x)
+- Level: intermediate
+- Sessions: 12, Messages: 156
+
+Focus on correcting article usage today.
+```
+
+---
+
+### 1.5.6 Choix du Modèle
+> Permettre de changer de modèle IA
+
+**Objectif :** Balance qualité/coût/vitesse
+
+**Todolist :**
+- [ ] Ajouter sélecteur de modèle dans les settings (admin only?)
+- [ ] Supporter plusieurs modèles :
+  - `gemini-2.0-flash` (défaut, gratuit, rapide)
+  - `gemini-1.5-pro` (meilleur, payant)
+  - `gemini-2.0-flash-thinking` (raisonnement, lent)
+- [ ] Afficher le modèle actuel
+- [ ] Logger l'usage par modèle pour le coût
+
+---
+
 ## Phase 2 : Engagement & Gamification (Impact Élevé / Effort Moyen)
 
 ### 2.1 Streak Counter
@@ -347,15 +533,16 @@ Correction: "went" instead of "go"
 
 | Semaine | Phase | Features |
 |---------|-------|----------|
-| 1 | Quick Wins | Corrections inline, Mobile responsive |
-| 2 | Quick Wins | Suggestions réponses, Contrôle vitesse |
-| 3 | Engagement | Streak counter, Niveau difficulté |
-| 4 | Engagement | Vocabulaire, Score session |
-| 5 | Voice | Mode conversation, Choix voix |
-| 6 | Voice | Feedback prononciation, Sous-titres |
-| 7-8 | Contenu | Scénarios guidés (x12) |
-| 9 | Contenu | Flashcards, Grammar tips |
-| 10 | Infra | Auth, Analytics, PWA |
+| 1 | Quick Wins | Corrections inline, Mobile responsive ✅ |
+| 2 | Quick Wins + IA | Suggestions réponses, Contrôle vitesse, Niveau adaptatif |
+| 3 | IA | Corrections formatées, Nouveaux outils (grammar, pronunciation) |
+| 4 | IA + Engagement | Paramètres génération, Mémoire contextuelle, Streak counter |
+| 5 | Engagement | Niveau difficulté UI, Vocabulaire, Score session |
+| 6 | Voice | Mode conversation, Choix voix |
+| 7 | Voice | Feedback prononciation, Sous-titres |
+| 8-9 | Contenu | Scénarios guidés (x12) |
+| 10 | Contenu | Flashcards, Grammar tips |
+| 11 | Infra | Auth, Analytics, PWA |
 
 ---
 
