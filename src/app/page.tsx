@@ -19,6 +19,8 @@ import {
   Loader2,
   Menu,
   X,
+  MessageCircle,
+  PenLine,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -36,6 +38,9 @@ export default function Home() {
 
   // Mobile sidebar state
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Correction mode toggle
+  const [correctionMode, setCorrectionMode] = useState(false);
 
   // useChat hook with new API
   const { messages, sendMessage, status, error, setMessages } = useChat({
@@ -261,7 +266,7 @@ export default function Home() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
-      sendMessage({ text: input });
+      sendMessage({ text: input }, { body: { correctionMode } });
       setInput("");
     }
   };
@@ -364,6 +369,20 @@ export default function Home() {
 
         {/* Bottom controls */}
         <div className="p-3 border-t border-border space-y-2">
+          {/* Mode Toggle */}
+          <button
+            onClick={() => setCorrectionMode(!correctionMode)}
+            className={`w-full flex items-center gap-3 px-3 py-3 rounded text-sm transition-colors min-h-[44px] ${
+              correctionMode
+                ? "bg-orange-500/10 text-orange-500"
+                : "bg-primary/10 text-primary"
+            }`}
+          >
+            {correctionMode ? <PenLine size={18} /> : <MessageCircle size={18} />}
+            {correctionMode ? "Correction Mode" : "Conversation Mode"}
+          </button>
+
+          {/* Voice Toggle */}
           <button
             onClick={() => setVoiceEnabled(!voiceEnabled)}
             className={`w-full flex items-center gap-3 px-3 py-3 rounded text-sm transition-colors min-h-[44px] ${
@@ -375,6 +394,8 @@ export default function Home() {
             {voiceEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
             Voice {voiceEnabled ? "ON" : "OFF"}
           </button>
+
+          {/* Theme Toggle */}
           <div className="flex items-center justify-between px-3 py-2">
             <span className="text-sm text-muted-foreground">Theme</span>
             <ThemeToggle />
@@ -403,6 +424,15 @@ export default function Home() {
             {!isSpeaking && !isListening && (
               <p className="text-sm text-muted-foreground">Ready to chat</p>
             )}
+          </div>
+
+          {/* Mode indicator on desktop */}
+          <div className={`mt-4 px-3 py-1.5 rounded text-sm font-medium ${
+            correctionMode
+              ? "bg-orange-500/20 text-orange-500"
+              : "bg-primary/20 text-primary"
+          }`}>
+            {correctionMode ? "Correction Mode" : "Conversation Mode"}
           </div>
 
           {/* Mic button */}
@@ -441,12 +471,26 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Center: Mini Voice Orb */}
-            <MiniVoiceOrb
-              isSpeaking={isSpeaking}
-              isListening={isListening}
-              onStop={stopSpeaking}
-            />
+            {/* Center: Mini Voice Orb + Mode indicator */}
+            <div className="flex items-center gap-2">
+              <MiniVoiceOrb
+                isSpeaking={isSpeaking}
+                isListening={isListening}
+                onStop={stopSpeaking}
+              />
+              {/* Mode toggle - tap to switch */}
+              <button
+                onClick={() => setCorrectionMode(!correctionMode)}
+                className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                  correctionMode
+                    ? "bg-orange-500/20 text-orange-500"
+                    : "bg-primary/20 text-primary"
+                }`}
+                aria-label={correctionMode ? "Switch to conversation mode" : "Switch to correction mode"}
+              >
+                {correctionMode ? "Correction" : "Chat"}
+              </button>
+            </div>
 
             {/* Right: Voice + Theme */}
             <div className="flex items-center gap-1">
