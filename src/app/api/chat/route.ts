@@ -103,23 +103,31 @@ const teacherTools = {
   }),
 
   startRolePlay: tool({
-    description: "Start a role-play scenario when the student wants to practice",
+    description: "Start a role-play scenario when the learner wants to practice real-life situations",
     inputSchema: z.object({
-      scenario: z.string().describe("The scenario: restaurant, shop, school"),
+      scenario: z.string().describe("The scenario: restaurant, shop, hotel, airport, job_interview"),
     }),
     execute: async ({ scenario }) => {
       const scenarios: Record<string, { situation: string; firstLine: string }> = {
         restaurant: {
           situation: "You are at a restaurant ordering food.",
-          firstLine: "🍽️ Waiter: Hello! Welcome! What would you like to eat today?",
+          firstLine: "Waiter: Hello and welcome! What would you like to order today?",
         },
         shop: {
-          situation: "You are at a toy shop looking for a gift.",
-          firstLine: "🏪 Assistant: Hi there! Can I help you find something?",
+          situation: "You are at a shop looking for something.",
+          firstLine: "Shop assistant: Hi there! Can I help you find something?",
         },
-        school: {
-          situation: "It's your first day at a new school.",
-          firstLine: "🏫 Teacher: Good morning class! We have a new student. Please say hello!",
+        hotel: {
+          situation: "You are checking into a hotel.",
+          firstLine: "Receptionist: Good evening! Welcome to our hotel. Do you have a reservation?",
+        },
+        airport: {
+          situation: "You are at the airport check-in counter.",
+          firstLine: "Agent: Hello! May I see your passport and booking confirmation please?",
+        },
+        job_interview: {
+          situation: "You are at a job interview.",
+          firstLine: "Interviewer: Hello, nice to meet you. Please, have a seat. Tell me a bit about yourself.",
         },
       };
 
