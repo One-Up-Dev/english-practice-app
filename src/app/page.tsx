@@ -420,9 +420,9 @@ export default function Home() {
         </div>
 
         {/* Right Panel - Chat */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Mobile Header - STICKY */}
-          <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between p-2 border-b border-border bg-card">
+        <div className="flex-1 flex flex-col min-w-0 h-screen lg:h-auto">
+          {/* Mobile Header - FIXED */}
+          <header className="lg:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between p-2 border-b border-border bg-card">
             {/* Left: Menu + New Chat */}
             <div className="flex items-center gap-1">
               <button
@@ -463,8 +463,8 @@ export default function Home() {
             </div>
           </header>
 
-          {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {/* Chat Messages - with padding for fixed header/footer on mobile */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 pt-16 pb-24 lg:pt-4 lg:pb-4">
             {/* Welcome message if no messages */}
             {messages.length === 0 && (
               <div className="text-center py-12">
@@ -561,8 +561,8 @@ export default function Home() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
-          <div className="border-t border-border p-3 sm:p-4 bg-card">
+          {/* Input Area - FIXED on mobile */}
+          <div className="fixed lg:static bottom-0 left-0 right-0 z-30 border-t border-border p-3 sm:p-4 bg-card">
             <form onSubmit={handleSubmit} className="flex gap-2">
               {/* Mic button - visible on mobile */}
               <button
