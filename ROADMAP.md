@@ -268,42 +268,50 @@ const levelPrompts = {
 
 ---
 
-### 1.5.5 Mémoire Contextuelle
+### 1.5.5 Mémoire Contextuelle ✅
 > Se souvenir des sessions précédentes
 
 **Objectif :** Personnaliser l'expérience au fil du temps
 
-**Todolist :**
-- [ ] Créer table `user_profile` (interests, level, common_errors, vocabulary_learned)
-- [ ] À chaque session, générer un résumé avec l'IA
-- [ ] Injecter le résumé dans le system prompt
-- [ ] Tracker les erreurs récurrentes pour les cibler
-- [ ] Mémoriser les sujets préférés
+**Implémentation terminée :**
+- [x] Table `user_profiles` créée (interests, common_errors, level, summary)
+- [x] Fonctions DB : `getUserProfile`, `createOrUpdateProfile`, `generateProfileContext`
+- [x] API endpoint `/api/profile` (GET/POST)
+- [x] Injection du contexte dans le system prompt
+- [x] Auto-tracking des intérêts (catégories sélectionnées)
+- [x] Auto-increment du compteur de messages
 
 **Schema DB :**
 ```sql
 CREATE TABLE user_profiles (
-  id SERIAL PRIMARY KEY,
-  session_id TEXT UNIQUE,
-  interests TEXT[], -- ['movies', 'travel', 'cooking']
-  common_errors JSONB, -- {"articles": 5, "past_tense": 3}
-  vocabulary_count INT DEFAULT 0,
-  total_messages INT DEFAULT 0,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
+  session_id UUID REFERENCES sessions(id),
+  interests TEXT[],           -- ['conversation', 'travel']
+  common_errors JSONB,        -- {"past_tense": 3, "articles": 2}
+  level VARCHAR(20),          -- 'beginner' | 'intermediate' | 'advanced'
+  summary TEXT,               -- AI-generated summary (future)
+  total_messages INTEGER
 );
 ```
 
 **Injection dans le prompt :**
 ```
 USER CONTEXT:
-- Interests: movies, travel
-- Common errors: articles (5x), past tense (3x)
-- Level: intermediate
-- Sessions: 12, Messages: 156
+- Interests: conversation, travel
+- Common errors: past_tense (3x), articles (2x)
+- Level: beginner
+- Total messages: 45
 
-Focus on correcting article usage today.
+Focus on correcting past_tense errors when appropriate.
 ```
+
+**Note :** Exécuter `/api/db/setup` pour créer la table.
+
+**Fichiers créés/modifiés :**
+- `src/lib/db.ts` - Types et fonctions
+- `src/app/api/profile/route.ts` - Nouvel endpoint
+- `src/app/api/db/setup/route.ts` - Nouvelle table
+- `src/app/api/chat/route.ts` - Injection du contexte
+- `src/app/page.tsx` - Tracking intérêts + sessionId
 
 ---
 
@@ -628,6 +636,7 @@ Correction: "went" instead of "go"
 ## Changelog
 
 ### 19 Janvier 2026
+- ✅ **1.5.5 Mémoire Contextuelle** - Profils utilisateur avec intérêts, erreurs, niveau
 - ✅ **1.1 Corrections Inline** - Highlighting visuel ~~rouge~~ → **vert** (Correction Mode uniquement)
 - ✅ **1.4 Contrôle Vitesse TTS** - Boutons Slow/Normal/Fast pour la vitesse de lecture
 - ✅ **1.3 Suggestions de Réponses** - Boutons cliquables pour répondre rapidement
