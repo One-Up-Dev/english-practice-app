@@ -61,6 +61,8 @@ Why: Use past tense 'went' for actions that happened in the past.
 - [x] **Actif uniquement en Correction Mode** (pas en Conversation Mode)
 - [x] Border orange à gauche pour distinguer les blocs de correction
 
+**Disponibilité :** Mode Correction uniquement
+
 **Exemple visuel :**
 ```
 ┃ I go → I went
@@ -69,7 +71,7 @@ Why: Use past tense 'went' for actions that happened in the past.
 
 **Fichiers créés/modifiés :**
 - `src/components/CorrectionHighlight.tsx` - Nouveau composant
-- `src/app/page.tsx` - Intégration conditionnelle
+- `src/app/page.tsx` - Intégration conditionnelle (rendu conditionnel si `correctionMode`)
 
 ---
 
@@ -105,6 +107,8 @@ Why: Use past tense 'went' for actions that happened in the past.
 - [x] Au clic, envoyer la suggestion comme message utilisateur
 - [x] Masquer les suggestions quand l'utilisateur commence à taper
 - [x] TTS utilise le texte nettoyé (sans le marqueur)
+
+**Disponibilité :** Tous les modes (Conversation ET Correction)
 
 **Format utilisé :**
 ```
@@ -176,6 +180,8 @@ So you went to the cinema. What movie did you see?
 - [x] Indicateurs de niveau sur desktop et mobile
 - [x] Synchronisation avec le profil DB
 
+**Disponibilité :** Tous les modes (Conversation ET Correction)
+
 **System Prompts par niveau :**
 
 | Niveau | Vocabulaire | Grammaire | Ton |
@@ -205,14 +211,20 @@ So you went to the cinema. What movie did you see?
 - [x] **pronunciationTip** : Conseils de prononciation pour 10 mots difficiles (the, think, comfortable, wednesday, would, etc.) avec phonétique IPA et pièges pour francophones
 - [x] **synonymSuggest** : Suggestions de synonymes pour 10 mots courants (good, bad, big, small, happy, sad, nice, interesting, said, very) avec niveaux (beginner → advanced)
 
+**Disponibilité :** Tous les modes (Conversation ET Correction)
+
 **Utilisation par l'IA :**
 L'IA peut automatiquement utiliser ces outils quand :
 - L'utilisateur fait une erreur de grammaire répétée → `grammarExplain`
 - L'utilisateur demande "comment prononce-t-on..." → `pronunciationTip`
 - L'utilisateur utilise des mots basiques répétitivement → `synonymSuggest`
 
+**Différence par mode :**
+- **Conversation Mode** : Outils utilisés de manière subtile, intégrés dans le flux
+- **Correction Mode** : Outils utilisés avec explications détaillées
+
 **Fichiers modifiés :**
-- `src/app/api/chat/route.ts` - 3 nouveaux outils ajoutés
+- `src/app/api/chat/route.ts` - 3 nouveaux outils ajoutés à `teacherTools`
 
 ---
 
@@ -277,6 +289,8 @@ USER CONTEXT:
 
 Focus on correcting past_tense errors when appropriate.
 ```
+
+**Disponibilité :** Tous les modes (Conversation ET Correction)
 
 **Note :** Exécuter `/api/db/setup` pour créer la table.
 
