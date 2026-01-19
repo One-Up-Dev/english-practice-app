@@ -89,6 +89,49 @@ Rules for suggestions:
 - No quotes around suggestions
 - Always include this section`;
 
+// ============================================
+// LEVEL PROMPTS - Adapt language complexity
+// ============================================
+
+const LEVEL_PROMPTS = {
+  beginner: `
+LANGUAGE ADAPTATION FOR BEGINNER:
+- Use ONLY the most common 500-1000 words in English
+- Keep sentences very short (5-8 words maximum)
+- Speak slowly and clearly - imagine they just started learning
+- Give LOTS of encouragement and positive feedback
+- Correct gently, always praise the attempt first
+- Use mainly present tense, introduce past tense slowly
+- AVOID idioms, phrasal verbs, and slang completely
+- If you must use a new word, explain it immediately
+- Use simple grammar structures only
+- Repeat key vocabulary to help them remember`,
+
+  intermediate: `
+LANGUAGE ADAPTATION FOR INTERMEDIATE:
+- Use everyday vocabulary with occasional new words (explain briefly)
+- Normal sentence length and structure
+- Introduce common idioms and explain them when used
+- Balance corrections with conversation flow
+- Use all tenses naturally
+- Challenge with follow-up questions to make them think
+- Can use some phrasal verbs (explain if needed)
+- Encourage longer responses from the learner
+- Point out nuances between similar words`,
+
+  advanced: `
+LANGUAGE ADAPTATION FOR ADVANCED:
+- Use rich vocabulary including idioms, phrasal verbs, and colloquialisms
+- Complex sentence structures are welcome
+- Focus on nuance, register, and style refinement
+- Correct subtle errors: articles, prepositions, collocations, word choice
+- Discuss abstract and complex topics
+- Challenge their reasoning and opinions
+- Introduce formal vs informal register differences
+- Point out British vs American English variations
+- Expect and encourage sophisticated responses`
+};
+
 // MODE 2: CORRECTION - Explicit corrections with explanations
 const CORRECTION_PROMPT = `You are an English teacher focused on helping a French-speaking adult learner improve through explicit corrections.
 
@@ -265,14 +308,19 @@ const teacherTools = {
 
 export async function POST(req: Request) {
   try {
-    const { messages, correctionMode = false, sessionId } = await req.json();
+    const { messages, correctionMode = false, sessionId, level = "beginner" } = await req.json();
 
     console.log("API received messages:", messages);
     console.log("Correction mode:", correctionMode);
+    console.log("Level:", level);
     console.log("Session ID:", sessionId);
 
     // Choose base system prompt based on mode
     let systemPrompt = correctionMode ? CORRECTION_PROMPT : CONVERSATION_PROMPT;
+
+    // Add level-specific instructions
+    const levelPrompt = LEVEL_PROMPTS[level as keyof typeof LEVEL_PROMPTS] || LEVEL_PROMPTS.beginner;
+    systemPrompt = `${systemPrompt}\n\n${levelPrompt}`;
 
     // Load user profile and inject context if available
     if (sessionId) {

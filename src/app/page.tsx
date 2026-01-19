@@ -21,6 +21,7 @@ import {
   X,
   MessageCircle,
   PenLine,
+  GraduationCap,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CorrectionHighlight } from "@/components/CorrectionHighlight";
@@ -42,6 +43,10 @@ export default function Home() {
 
   // Correction mode toggle
   const [correctionMode, setCorrectionMode] = useState(false);
+
+  // Language level state
+  type Level = "beginner" | "intermediate" | "advanced";
+  const [level, setLevel] = useState<Level>("beginner");
 
   // useChat hook with new API
   const { messages, sendMessage, status, error, setMessages } = useChat({
@@ -217,6 +222,36 @@ export default function Home() {
     localStorage.setItem("english-practice-speech-rate", rate.toString());
   };
 
+  // Load level from localStorage on mount
+  useEffect(() => {
+    const savedLevel = localStorage.getItem("english-practice-level");
+    if (savedLevel && ["beginner", "intermediate", "advanced"].includes(savedLevel)) {
+      setLevel(savedLevel as Level);
+    }
+  }, []);
+
+  // Update level in localStorage and profile DB
+  const updateLevel = async (newLevel: Level) => {
+    setLevel(newLevel);
+    localStorage.setItem("english-practice-level", newLevel);
+
+    // Update profile in DB
+    if (sessionId) {
+      try {
+        await fetch("/api/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId,
+            level: newLevel,
+          }),
+        });
+      } catch (e) {
+        console.error("Error updating level in profile:", e);
+      }
+    }
+  };
+
   // Scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -333,14 +368,14 @@ export default function Home() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
-      sendMessage({ text: input }, { body: { correctionMode, sessionId } });
+      sendMessage({ text: input }, { body: { correctionMode, sessionId, level } });
       setInput("");
     }
   };
 
   // Handle suggestion click
   const handleSuggestionClick = (suggestion: string) => {
-    sendMessage({ text: suggestion }, { body: { correctionMode, sessionId } });
+    sendMessage({ text: suggestion }, { body: { correctionMode, sessionId, level } });
   };
 
   // Handle category selection and track interest
@@ -473,6 +508,33 @@ export default function Home() {
             {correctionMode ? "Correction Mode" : "Conversation Mode"}
           </button>
 
+          {/* Level Selector */}
+          <div className="px-3 py-2">
+            <div className="flex items-center gap-2 mb-2">
+              <GraduationCap size={16} className="text-muted-foreground" />
+              <p className="text-xs text-muted-foreground">English Level</p>
+            </div>
+            <div className="flex gap-1">
+              {[
+                { id: "beginner" as Level, label: "Beginner", color: "text-green-500" },
+                { id: "intermediate" as Level, label: "Inter.", color: "text-yellow-500" },
+                { id: "advanced" as Level, label: "Advanced", color: "text-red-500" },
+              ].map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => updateLevel(option.id)}
+                  className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
+                    level === option.id
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Voice Toggle */}
           <button
             onClick={() => setVoiceEnabled(!voiceEnabled)}
@@ -552,6 +614,17 @@ export default function Home() {
             {correctionMode ? "Correction Mode" : "Conversation Mode"}
           </div>
 
+          {/* Level indicator on desktop */}
+          <div className={`mt-2 px-3 py-1.5 rounded text-xs font-medium ${
+            level === "beginner"
+              ? "bg-green-500/20 text-green-500"
+              : level === "intermediate"
+              ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
+              : "bg-red-500/20 text-red-500"
+          }`}>
+            {level.charAt(0).toUpperCase() + level.slice(1)} Level
+          </div>
+
           {/* Mic button */}
           <button
             onClick={isListening ? stopListening : startListening}
@@ -588,8 +661,8 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Center: Mini Voice Orb + Mode indicator */}
-            <div className="flex items-center gap-2">
+            {/* Center: Mini Voice Orb + Mode + Level indicators */}
+            <div className="flex items-center gap-1.5">
               <MiniVoiceOrb
                 isSpeaking={isSpeaking}
                 isListening={isListening}
@@ -607,6 +680,16 @@ export default function Home() {
               >
                 {correctionMode ? "Correction" : "Chat"}
               </button>
+              {/* Level indicator */}
+              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                level === "beginner"
+                  ? "bg-green-500/20 text-green-600 dark:text-green-400"
+                  : level === "intermediate"
+                  ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
+                  : "bg-red-500/20 text-red-500"
+              }`}>
+                {level === "beginner" ? "B" : level === "intermediate" ? "I" : "A"}
+              </span>
             </div>
 
             {/* Right: Voice + Theme */}

@@ -162,49 +162,36 @@ So you went to the cinema. What movie did you see?
 
 ---
 
-### 1.5.2 Niveau Adaptatif
+### 1.5.2 Niveau Adaptatif ✅
 > System prompt dynamique selon le niveau
 
 **Objectif :** Adapter le langage et la complexité au niveau de l'utilisateur
 
-**Todolist :**
-- [ ] Créer 3 variantes du system prompt (beginner, intermediate, advanced)
-- [ ] Ajouter le niveau dans le body de la requête API
-- [ ] Modifier `/api/chat/route.ts` pour utiliser le bon prompt
-- [ ] Sauvegarder le niveau en localStorage
-- [ ] UI : sélecteur dans la sidebar
+**Implémentation terminée :**
+- [x] Créer 3 variantes du system prompt (beginner, intermediate, advanced)
+- [x] Ajouter le niveau dans le body de la requête API
+- [x] Modifier `/api/chat/route.ts` pour utiliser le bon prompt
+- [x] Sauvegarder le niveau en localStorage
+- [x] UI : sélecteur dans la sidebar
+- [x] Indicateurs de niveau sur desktop et mobile
+- [x] Synchronisation avec le profil DB
 
 **System Prompts par niveau :**
 
-```typescript
-const levelPrompts = {
-  beginner: `
-    - Use very simple vocabulary (most common 1000 words)
-    - Keep sentences short (5-10 words max)
-    - Speak slowly and clearly
-    - Give lots of encouragement and positive feedback
-    - Correct gently, always praise the attempt first
-    - Use present tense mainly
-    - Avoid idioms and phrasal verbs
-  `,
-  intermediate: `
-    - Use everyday vocabulary with occasional new words
-    - Normal sentence length and structure
-    - Introduce common idioms and explain them
-    - Balance corrections with conversation flow
-    - Use all tenses naturally
-    - Challenge with follow-up questions
-  `,
-  advanced: `
-    - Use rich vocabulary including idioms and phrasal verbs
-    - Complex sentence structures are fine
-    - Focus on nuance, register, and style
-    - Correct subtle errors (articles, prepositions, collocations)
-    - Discuss abstract topics
-    - Challenge their reasoning and opinions
-  `
-};
-```
+| Niveau | Vocabulaire | Grammaire | Ton |
+|--------|-------------|-----------|-----|
+| Beginner | 500-1000 mots courants | Présent surtout | Très encourageant |
+| Intermediate | Vocabulaire quotidien + idiomes | Tous les temps | Équilibré |
+| Advanced | Riche, idiomes, nuances | Structures complexes | Challengeant |
+
+**UI :**
+- Sélecteur 3 boutons dans la sidebar (Beginner / Inter. / Advanced)
+- Badge coloré sur desktop (vert/jaune/rouge)
+- Lettre indicatrice sur mobile (B/I/A)
+
+**Fichiers modifiés :**
+- `src/app/api/chat/route.ts` - LEVEL_PROMPTS + injection
+- `src/app/page.tsx` - State, sélecteur, indicateurs
 
 ---
 
@@ -636,6 +623,7 @@ Correction: "went" instead of "go"
 ## Changelog
 
 ### 19 Janvier 2026
+- ✅ **1.5.2 Niveau Adaptatif** - System prompt dynamique (Beginner/Intermediate/Advanced)
 - ✅ **1.5.5 Mémoire Contextuelle** - Profils utilisateur avec intérêts, erreurs, niveau
 - ✅ **1.1 Corrections Inline** - Highlighting visuel ~~rouge~~ → **vert** (Correction Mode uniquement)
 - ✅ **1.4 Contrôle Vitesse TTS** - Boutons Slow/Normal/Fast pour la vitesse de lecture
