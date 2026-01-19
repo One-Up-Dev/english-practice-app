@@ -33,18 +33,18 @@ Correction: "I **went** to school yesterday" (past tense needed)
 
 ---
 
-### 1.2 Mobile Responsive
+### 1.2 Mobile Responsive ✅
 > Adapter le layout pour mobile et tablette
 
 **Objectif :** Permettre l'utilisation sur smartphone
 
 **Todolist :**
-- [ ] Créer un layout mobile avec sidebar en drawer/bottom sheet
-- [ ] Cacher le panneau VoiceOrb sur mobile (ou le réduire en header)
-- [ ] Adapter la taille des boutons pour le touch (min 44px)
-- [ ] Tester sur différentes tailles d'écran (320px, 375px, 414px)
-- [ ] Ajouter un bouton hamburger pour ouvrir la sidebar
-- [ ] Optimiser le clavier virtuel (input qui ne se cache pas)
+- [x] Créer un layout mobile avec sidebar en drawer/bottom sheet
+- [x] Cacher le panneau VoiceOrb sur mobile (ou le réduire en header)
+- [x] Adapter la taille des boutons pour le touch (min 44px)
+- [x] Tester sur différentes tailles d'écran (320px, 375px, 414px)
+- [x] Ajouter un bouton hamburger pour ouvrir la sidebar
+- [x] Optimiser le clavier virtuel (input qui ne se cache pas)
 
 **Breakpoints :**
 - Mobile: < 768px
