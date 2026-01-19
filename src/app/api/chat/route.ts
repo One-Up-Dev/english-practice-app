@@ -304,6 +304,381 @@ const teacherTools = {
       return questions[Math.floor(Math.random() * questions.length)];
     },
   }),
+
+  // ============================================
+  // NEW TOOLS - Grammar, Pronunciation, Synonyms
+  // ============================================
+
+  grammarExplain: tool({
+    description: "Explain a grammar rule in detail when the student asks or makes repeated errors. Use this to teach grammar concepts.",
+    inputSchema: z.object({
+      rule: z.string().describe("The grammar rule to explain: past_simple, present_perfect, articles, prepositions, conditionals, passive_voice, comparatives, question_forms"),
+      context: z.string().describe("The sentence or error that triggered this explanation"),
+    }),
+    execute: async ({ rule, context }) => {
+      const grammarRules: Record<string, {
+        name: string;
+        explanation: string;
+        structure: string;
+        examples: string[];
+        commonMistakes: string;
+        frenchTip: string;
+      }> = {
+        past_simple: {
+          name: "Past Simple Tense",
+          explanation: "Use the past simple for completed actions in the past. The action is finished.",
+          structure: "Subject + verb(ed) OR irregular past form",
+          examples: [
+            "I walked to school yesterday.",
+            "She ate breakfast at 8am.",
+            "They went to Paris last summer."
+          ],
+          commonMistakes: "Using present tense for past actions: 'I go yesterday' instead of 'I went yesterday'",
+          frenchTip: "Similar to French passé composé, but simpler - no auxiliary verb needed for most verbs."
+        },
+        present_perfect: {
+          name: "Present Perfect Tense",
+          explanation: "Use present perfect for past actions with a connection to now, or for experiences without a specific time.",
+          structure: "Subject + have/has + past participle",
+          examples: [
+            "I have visited London twice.",
+            "She has already eaten.",
+            "Have you ever tried sushi?"
+          ],
+          commonMistakes: "Using past simple instead: 'Did you ever try sushi?' instead of 'Have you ever tried sushi?'",
+          frenchTip: "Looks like passé composé but usage is different! English uses it for unfinished time periods."
+        },
+        articles: {
+          name: "Articles (a, an, the)",
+          explanation: "Use 'a/an' for general or first mention. Use 'the' for specific or already mentioned things.",
+          structure: "a + consonant sound, an + vowel sound, the + specific noun",
+          examples: [
+            "I saw a dog. The dog was brown.",
+            "She is an engineer.",
+            "The sun is bright today."
+          ],
+          commonMistakes: "Omitting articles: 'I have car' instead of 'I have a car'",
+          frenchTip: "French uses articles more than English. 'I like music' (no article) vs 'J'aime la musique'"
+        },
+        prepositions: {
+          name: "Prepositions of Time and Place",
+          explanation: "Prepositions show relationships between words. Time: at, on, in. Place: at, on, in, to.",
+          structure: "at (specific time/place), on (days/surfaces), in (months/years/enclosed spaces)",
+          examples: [
+            "at 5 o'clock, at the station",
+            "on Monday, on the table",
+            "in January, in the room"
+          ],
+          commonMistakes: "Wrong preposition: 'in Monday' instead of 'on Monday'",
+          frenchTip: "Different from French! 'In the morning' = 'le matin', 'at night' = 'la nuit'"
+        },
+        conditionals: {
+          name: "Conditional Sentences",
+          explanation: "Express possibilities and their results. Zero (facts), First (likely), Second (unlikely), Third (past unreal).",
+          structure: "If + condition, result / Result if + condition",
+          examples: [
+            "Zero: If you heat water, it boils.",
+            "First: If it rains, I will stay home.",
+            "Second: If I won the lottery, I would travel.",
+            "Third: If I had studied, I would have passed."
+          ],
+          commonMistakes: "Mixing tenses: 'If I would have money' instead of 'If I had money'",
+          frenchTip: "Second conditional uses past tense like French imparfait in 'si' clauses."
+        },
+        passive_voice: {
+          name: "Passive Voice",
+          explanation: "Use passive when the action is more important than who did it, or when the doer is unknown.",
+          structure: "Subject + be + past participle (+ by agent)",
+          examples: [
+            "The cake was eaten.",
+            "The book was written by Hemingway.",
+            "English is spoken worldwide."
+          ],
+          commonMistakes: "Forgetting 'be': 'The cake eaten' instead of 'The cake was eaten'",
+          frenchTip: "Similar to French passive with être, but used more often in English."
+        },
+        comparatives: {
+          name: "Comparatives and Superlatives",
+          explanation: "Compare two things (comparative) or identify the extreme (superlative).",
+          structure: "Short adj: -er/-est. Long adj: more/most + adj",
+          examples: [
+            "She is taller than me.",
+            "This is the most beautiful city.",
+            "He runs faster than his brother."
+          ],
+          commonMistakes: "Double comparison: 'more bigger' instead of 'bigger'",
+          frenchTip: "Unlike French 'plus grand', short English adjectives change form: big → bigger"
+        },
+        question_forms: {
+          name: "Question Formation",
+          explanation: "Form questions using auxiliary verbs (do/does/did) or inverting subject and verb.",
+          structure: "Auxiliary + subject + main verb? / Question word + auxiliary + subject + verb?",
+          examples: [
+            "Do you like coffee?",
+            "Where did she go?",
+            "Have you finished?"
+          ],
+          commonMistakes: "Missing auxiliary: 'You like coffee?' instead of 'Do you like coffee?'",
+          frenchTip: "Unlike French intonation questions, English usually needs an auxiliary verb."
+        }
+      };
+
+      const ruleData = grammarRules[rule] || grammarRules["past_simple"];
+      return {
+        ...ruleData,
+        triggeredBy: context
+      };
+    },
+  }),
+
+  pronunciationTip: tool({
+    description: "Give pronunciation tips for tricky English words or sounds. Use when the learner asks about pronunciation or might struggle with a word.",
+    inputSchema: z.object({
+      word: z.string().describe("The word to explain pronunciation for"),
+    }),
+    execute: async ({ word }) => {
+      // Common pronunciation challenges for French speakers
+      const pronunciationGuide: Record<string, {
+        phonetic: string;
+        sounds: string;
+        tip: string;
+        similarWords: string[];
+        frenchTrap: string;
+      }> = {
+        "the": {
+          phonetic: "/ðə/ or /ði/",
+          sounds: "The 'th' sound - put your tongue between your teeth and blow air",
+          tip: "Use 'thee' before vowel sounds, 'thuh' before consonants",
+          similarWords: ["this", "that", "there", "they"],
+          frenchTrap: "Don't say 'ze' - the English 'th' doesn't exist in French!"
+        },
+        "think": {
+          phonetic: "/θɪŋk/",
+          sounds: "Unvoiced 'th' - tongue between teeth, no vibration",
+          tip: "Different from 'the' - this 'th' is softer, like blowing air",
+          similarWords: ["thought", "through", "three", "thing"],
+          frenchTrap: "Not 'sink' or 'zink' - practice the tongue position"
+        },
+        "comfortable": {
+          phonetic: "/ˈkʌmf.tə.bəl/",
+          sounds: "Only 3 syllables! CUMF-ter-bul",
+          tip: "The 'or' is silent - don't say 'com-for-table'",
+          similarWords: ["vegetable", "reasonable"],
+          frenchTrap: "Much shorter than the French 'confortable'"
+        },
+        "wednesday": {
+          phonetic: "/ˈwenz.deɪ/",
+          sounds: "WENZ-day - the 'd' in the middle is silent",
+          tip: "Only 2 syllables, not 3",
+          similarWords: ["February (Feb-yoo-ary)", "library (li-brer-y)"],
+          frenchTrap: "Unlike French 'mercredi', English has silent letters"
+        },
+        "would": {
+          phonetic: "/wʊd/",
+          sounds: "Sounds exactly like 'wood'",
+          tip: "The 'l' is completely silent",
+          similarWords: ["could", "should"],
+          frenchTrap: "Don't pronounce the 'l' - it's not 'woo-ld'"
+        },
+        "interesting": {
+          phonetic: "/ˈɪn.trə.stɪŋ/",
+          sounds: "IN-truh-sting - only 3 syllables in casual speech",
+          tip: "The second 'e' often disappears",
+          similarWords: ["different", "chocolate", "camera"],
+          frenchTrap: "French says all syllables; English often drops them"
+        },
+        "island": {
+          phonetic: "/ˈaɪ.lənd/",
+          sounds: "EYE-land - the 's' is silent",
+          tip: "Think of it as 'I-land'",
+          similarWords: ["isle", "aisle"],
+          frenchTrap: "Silent 's' like French 'île' - they share the same origin!"
+        },
+        "height": {
+          phonetic: "/haɪt/",
+          sounds: "Rhymes with 'light' and 'right'",
+          tip: "The 'ei' makes an 'eye' sound, not 'ee'",
+          similarWords: ["weight (WAYT)", "eight (AYT)"],
+          frenchTrap: "'ei' in English has many sounds - learn each word"
+        },
+        "clothes": {
+          phonetic: "/kloʊz/",
+          sounds: "Sounds almost like 'close' (to shut)",
+          tip: "The 'th' is barely pronounced - say 'cloze'",
+          similarWords: ["months", "sixths"],
+          frenchTrap: "Don't try to pronounce every letter clearly"
+        },
+        "breakfast": {
+          phonetic: "/ˈbrek.fəst/",
+          sounds: "BREK-fust - short 'e' sound",
+          tip: "Not 'break-fast' - it's compressed into one quick word",
+          similarWords: ["cupboard (CUB-erd)", "forehead (FOR-ed)"],
+          frenchTrap: "English compounds often change pronunciation"
+        }
+      };
+
+      const wordLower = word.toLowerCase();
+
+      // Check if we have specific data for this word
+      if (pronunciationGuide[wordLower]) {
+        return pronunciationGuide[wordLower];
+      }
+
+      // Generic response for words not in our guide
+      return {
+        phonetic: `Look up: ${word}`,
+        sounds: "Listen carefully and repeat",
+        tip: "Break the word into syllables and practice each part",
+        similarWords: [],
+        frenchTrap: "Pay attention to silent letters and stress patterns - they differ from French"
+      };
+    },
+  }),
+
+  synonymSuggest: tool({
+    description: "Suggest synonyms to help expand vocabulary. Use when the learner uses basic words repeatedly or asks for alternatives.",
+    inputSchema: z.object({
+      word: z.string().describe("The word to find synonyms for"),
+      context: z.string().describe("The sentence context where the word was used"),
+    }),
+    execute: async ({ word, context }) => {
+      const synonyms: Record<string, {
+        basic: string;
+        alternatives: Array<{ word: string; level: string; nuance: string }>;
+        exampleUpgrade: string;
+      }> = {
+        "good": {
+          basic: "good",
+          alternatives: [
+            { word: "great", level: "beginner", nuance: "more enthusiastic" },
+            { word: "excellent", level: "intermediate", nuance: "formal, high quality" },
+            { word: "wonderful", level: "intermediate", nuance: "emotional, delightful" },
+            { word: "outstanding", level: "advanced", nuance: "exceptionally good" },
+            { word: "superb", level: "advanced", nuance: "extremely impressive" }
+          ],
+          exampleUpgrade: "'The food was good' → 'The food was delicious'"
+        },
+        "bad": {
+          basic: "bad",
+          alternatives: [
+            { word: "terrible", level: "beginner", nuance: "very bad" },
+            { word: "awful", level: "intermediate", nuance: "extremely bad, unpleasant" },
+            { word: "dreadful", level: "intermediate", nuance: "causing fear or shock" },
+            { word: "appalling", level: "advanced", nuance: "shockingly bad" },
+            { word: "atrocious", level: "advanced", nuance: "extremely bad quality" }
+          ],
+          exampleUpgrade: "'The weather was bad' → 'The weather was terrible'"
+        },
+        "big": {
+          basic: "big",
+          alternatives: [
+            { word: "large", level: "beginner", nuance: "more formal than big" },
+            { word: "huge", level: "beginner", nuance: "very big" },
+            { word: "enormous", level: "intermediate", nuance: "extremely large" },
+            { word: "massive", level: "intermediate", nuance: "heavy and large" },
+            { word: "immense", level: "advanced", nuance: "extremely large, vast" }
+          ],
+          exampleUpgrade: "'It's a big house' → 'It's an enormous house'"
+        },
+        "small": {
+          basic: "small",
+          alternatives: [
+            { word: "little", level: "beginner", nuance: "often affectionate" },
+            { word: "tiny", level: "beginner", nuance: "very small" },
+            { word: "compact", level: "intermediate", nuance: "small but efficient" },
+            { word: "miniature", level: "intermediate", nuance: "very small version" },
+            { word: "minuscule", level: "advanced", nuance: "extremely tiny" }
+          ],
+          exampleUpgrade: "'A small apartment' → 'A cozy/compact apartment'"
+        },
+        "happy": {
+          basic: "happy",
+          alternatives: [
+            { word: "glad", level: "beginner", nuance: "pleased about something" },
+            { word: "delighted", level: "intermediate", nuance: "very pleased" },
+            { word: "thrilled", level: "intermediate", nuance: "extremely excited and happy" },
+            { word: "overjoyed", level: "advanced", nuance: "extremely happy" },
+            { word: "ecstatic", level: "advanced", nuance: "overwhelmingly happy" }
+          ],
+          exampleUpgrade: "'I'm happy to help' → 'I'm delighted to help'"
+        },
+        "sad": {
+          basic: "sad",
+          alternatives: [
+            { word: "unhappy", level: "beginner", nuance: "not happy" },
+            { word: "upset", level: "beginner", nuance: "sad and slightly angry" },
+            { word: "miserable", level: "intermediate", nuance: "very unhappy" },
+            { word: "heartbroken", level: "intermediate", nuance: "extremely sad about loss" },
+            { word: "devastated", level: "advanced", nuance: "overwhelmingly sad" }
+          ],
+          exampleUpgrade: "'I feel sad' → 'I feel down/blue'"
+        },
+        "nice": {
+          basic: "nice",
+          alternatives: [
+            { word: "lovely", level: "beginner", nuance: "pleasant, attractive" },
+            { word: "pleasant", level: "intermediate", nuance: "enjoyable, agreeable" },
+            { word: "delightful", level: "intermediate", nuance: "charming, very pleasant" },
+            { word: "charming", level: "advanced", nuance: "attractively pleasant" },
+            { word: "exquisite", level: "advanced", nuance: "extremely beautiful/refined" }
+          ],
+          exampleUpgrade: "'A nice day' → 'A lovely/beautiful day'"
+        },
+        "interesting": {
+          basic: "interesting",
+          alternatives: [
+            { word: "fascinating", level: "intermediate", nuance: "extremely interesting" },
+            { word: "intriguing", level: "intermediate", nuance: "arousing curiosity" },
+            { word: "captivating", level: "advanced", nuance: "holding attention completely" },
+            { word: "compelling", level: "advanced", nuance: "powerfully interesting" },
+            { word: "riveting", level: "advanced", nuance: "completely absorbing" }
+          ],
+          exampleUpgrade: "'An interesting book' → 'A fascinating/captivating book'"
+        },
+        "said": {
+          basic: "said",
+          alternatives: [
+            { word: "told", level: "beginner", nuance: "said to someone specific" },
+            { word: "replied", level: "beginner", nuance: "said in response" },
+            { word: "explained", level: "intermediate", nuance: "said with clarification" },
+            { word: "mentioned", level: "intermediate", nuance: "said briefly" },
+            { word: "remarked", level: "advanced", nuance: "said as a comment" }
+          ],
+          exampleUpgrade: "'She said she was tired' → 'She mentioned she was tired'"
+        },
+        "very": {
+          basic: "very",
+          alternatives: [
+            { word: "really", level: "beginner", nuance: "informal emphasis" },
+            { word: "extremely", level: "intermediate", nuance: "to a high degree" },
+            { word: "incredibly", level: "intermediate", nuance: "hard to believe how much" },
+            { word: "exceptionally", level: "advanced", nuance: "unusually, remarkably" },
+            { word: "remarkably", level: "advanced", nuance: "worthy of attention" }
+          ],
+          exampleUpgrade: "'Very good' → 'Excellent' / 'Very big' → 'Huge'"
+        }
+      };
+
+      const wordLower = word.toLowerCase();
+
+      if (synonyms[wordLower]) {
+        return {
+          ...synonyms[wordLower],
+          originalContext: context
+        };
+      }
+
+      // Generic response for words not in our guide
+      return {
+        basic: word,
+        alternatives: [
+          { word: "Try a thesaurus!", level: "tip", nuance: "Look up synonyms online" }
+        ],
+        exampleUpgrade: "Practice using different words to express similar ideas",
+        originalContext: context
+      };
+    },
+  }),
 };
 
 export async function POST(req: Request) {

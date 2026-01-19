@@ -195,37 +195,24 @@ So you went to the cinema. What movie did you see?
 
 ---
 
-### 1.5.3 Nouveaux Outils IA
+### 1.5.3 Nouveaux Outils IA ✅
 > Étendre les capacités du professeur
 
 **Objectif :** Enrichir l'expérience d'apprentissage
 
-**Todolist :**
-- [ ] **grammarExplain** : Expliquer une règle de grammaire en détail
-  ```typescript
-  grammarExplain: tool({
-    description: "Explain a grammar rule when student asks or makes repeated errors",
-    inputSchema: z.object({
-      rule: z.string(), // "past_simple", "articles", "prepositions"
-      context: z.string() // The sentence that triggered it
-    }),
-    execute: async ({ rule, context }) => { ... }
-  })
-  ```
-- [ ] **pronunciationTip** : Donner des conseils de prononciation
-  ```typescript
-  pronunciationTip: tool({
-    description: "Give pronunciation tips for tricky words",
-    inputSchema: z.object({
-      word: z.string(),
-    }),
-    execute: async ({ word }) => {
-      // Return IPA, similar sounds, common mistakes
-    }
-  })
-  ```
-- [ ] **synonymSuggest** : Suggérer des synonymes pour enrichir le vocabulaire
-- [ ] **culturalNote** : Expliquer les différences culturelles (UK vs US)
+**Implémentation terminée :**
+- [x] **grammarExplain** : Explique 8 règles de grammaire (past_simple, present_perfect, articles, prepositions, conditionals, passive_voice, comparatives, question_forms) avec exemples et tips pour francophones
+- [x] **pronunciationTip** : Conseils de prononciation pour 10 mots difficiles (the, think, comfortable, wednesday, would, etc.) avec phonétique IPA et pièges pour francophones
+- [x] **synonymSuggest** : Suggestions de synonymes pour 10 mots courants (good, bad, big, small, happy, sad, nice, interesting, said, very) avec niveaux (beginner → advanced)
+
+**Utilisation par l'IA :**
+L'IA peut automatiquement utiliser ces outils quand :
+- L'utilisateur fait une erreur de grammaire répétée → `grammarExplain`
+- L'utilisateur demande "comment prononce-t-on..." → `pronunciationTip`
+- L'utilisateur utilise des mots basiques répétitivement → `synonymSuggest`
+
+**Fichiers modifiés :**
+- `src/app/api/chat/route.ts` - 3 nouveaux outils ajoutés
 
 ---
 
@@ -623,6 +610,7 @@ Correction: "went" instead of "go"
 ## Changelog
 
 ### 19 Janvier 2026
+- ✅ **1.5.3 Nouveaux Outils IA** - grammarExplain, pronunciationTip, synonymSuggest
 - ✅ **1.5.2 Niveau Adaptatif** - System prompt dynamique (Beginner/Intermediate/Advanced)
 - ✅ **1.5.5 Mémoire Contextuelle** - Profils utilisateur avec intérêts, erreurs, niveau
 - ✅ **1.1 Corrections Inline** - Highlighting visuel ~~rouge~~ → **vert** (Correction Mode uniquement)
