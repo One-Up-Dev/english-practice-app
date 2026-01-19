@@ -89,26 +89,30 @@ Why: Use past tense 'went' for actions that happened in the past.
 
 ---
 
-### 1.3 Suggestions de Réponses
+### 1.3 Suggestions de Réponses ✅
 > Boutons cliquables pour répondre rapidement
 
 **Objectif :** Réduire la friction, aider les débutants
 
-**Todolist :**
-- [ ] Modifier l'API pour que l'IA génère 2-3 suggestions de réponses
-- [ ] Créer un composant `SuggestionChips` (boutons horizontaux)
-- [ ] Afficher les suggestions sous le dernier message de l'IA
-- [ ] Au clic, envoyer la suggestion comme message utilisateur
-- [ ] Masquer les suggestions quand l'utilisateur commence à taper
-- [ ] Style : petits boutons outline, scrollable horizontalement sur mobile
+**Implémentation terminée :**
+- [x] Modifier les system prompts pour générer 2-3 suggestions par réponse
+- [x] Parser les suggestions avec le marqueur `---SUGGESTIONS---`
+- [x] Afficher les suggestions comme boutons cliquables ("Try: ...")
+- [x] Au clic, envoyer la suggestion comme message utilisateur
+- [x] Masquer les suggestions quand l'utilisateur commence à taper
+- [x] TTS utilise le texte nettoyé (sans le marqueur)
 
-**Format attendu de l'IA :**
-```json
-{
-  "message": "Hello! How are you today?",
-  "suggestions": ["I'm fine, thank you!", "Not so good...", "I'm excited!"]
-}
+**Format utilisé :**
 ```
+[Message de l'IA]
+
+---SUGGESTIONS---
+I'm fine, thank you!|Not so good today.|Great, thanks!
+```
+
+**Fichiers modifiés :**
+- `src/app/api/chat/route.ts` - Instructions dans les system prompts
+- `src/app/page.tsx` - Parsing et affichage des chips
 
 ---
 
@@ -569,8 +573,8 @@ Correction: "went" instead of "go"
 
 | Semaine | Phase | Features |
 |---------|-------|----------|
-| 1 | Quick Wins | Mode Correction ✅, Mobile responsive ✅ |
-| 2 | Quick Wins + IA | Corrections inline visuel, Suggestions réponses, Contrôle vitesse, Niveau adaptatif |
+| 1 | Quick Wins | Mode Correction ✅, Mobile responsive ✅, Suggestions ✅ |
+| 2 | Quick Wins + IA | Corrections inline visuel, Contrôle vitesse, Niveau adaptatif |
 | 3 | IA | Corrections formatées, Nouveaux outils (grammar, pronunciation) |
 | 4 | IA + Engagement | Paramètres génération, Mémoire contextuelle, Streak counter |
 | 5 | Engagement | Niveau difficulté UI, Vocabulaire, Score session |
@@ -617,5 +621,6 @@ Correction: "went" instead of "go"
 ## Changelog
 
 ### 19 Janvier 2026
+- ✅ **1.3 Suggestions de Réponses** - Boutons cliquables pour répondre rapidement
 - ✅ **1.0 Mode Correction** - Toggle entre conversation naturelle et corrections explicites
 - ✅ **1.2 Mobile Responsive** - Layout adaptatif avec header/footer fixes
