@@ -134,7 +134,7 @@ export async function POST(req: Request) {
     console.log("API received messages:", messages);
 
     const result = streamText({
-      model: google("gemini-2.5-flash"),
+      model: google("gemini-2.0-flash"),  // Version gratuite
       system: ENGLISH_TEACHER_PROMPT,
       messages: await convertToModelMessages(messages),
       tools: teacherTools,
