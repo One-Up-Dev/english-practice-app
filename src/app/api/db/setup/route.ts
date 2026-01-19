@@ -41,6 +41,22 @@ export async function GET() {
       )
     `;
 
+    // Créer la table user_profiles pour la mémoire contextuelle
+    await sql`
+      CREATE TABLE IF NOT EXISTS user_profiles (
+        id SERIAL PRIMARY KEY,
+        session_id UUID REFERENCES sessions(id) ON DELETE CASCADE UNIQUE,
+        interests TEXT[] DEFAULT '{}',
+        common_errors JSONB DEFAULT '{}',
+        level VARCHAR(20) DEFAULT 'beginner',
+        summary TEXT,
+        total_sessions INTEGER DEFAULT 1,
+        total_messages INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `;
+
     // Créer les index
     await sql`
       CREATE INDEX IF NOT EXISTS idx_messages_session ON messages(session_id)
@@ -48,11 +64,14 @@ export async function GET() {
     await sql`
       CREATE INDEX IF NOT EXISTS idx_progress_session ON progress(session_id)
     `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS idx_user_profiles_session ON user_profiles(session_id)
+    `;
 
     return Response.json({
       success: true,
       message: "Database tables created successfully!",
-      tables: ["sessions", "messages", "progress"],
+      tables: ["sessions", "messages", "progress", "user_profiles"],
     });
   } catch (error) {
     console.error("Database setup error:", error);

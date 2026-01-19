@@ -36,6 +36,19 @@ export interface Progress {
   updated_at: Date;
 }
 
+export interface UserProfile {
+  id: number;
+  session_id: string;
+  interests: string[];
+  common_errors: Record<string, number>; // { "past_tense": 3, "articles": 5 }
+  level: "beginner" | "intermediate" | "advanced";
+  summary: string | null;
+  total_sessions: number;
+  total_messages: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
 // ============================================
 // Sessions
 // ============================================
@@ -125,4 +138,110 @@ export async function getProgress(sessionId: string): Promise<Progress | null> {
     SELECT * FROM progress WHERE session_id = ${sessionId}
   `;
   return progress as Progress | null;
+}
+
+// ============================================
+// User Profiles (Contextual Memory)
+// ============================================
+
+export async function getUserProfile(sessionId: string): Promise<UserProfile | null> {
+  const [profile] = await sql`
+    SELECT * FROM user_profiles WHERE session_id = ${sessionId}
+  `;
+  return profile as UserProfile | null;
+}
+
+export async function createOrUpdateProfile(
+  sessionId: string,
+  updates: {
+    interests?: string[];
+    common_errors?: Record<string, number>;
+    level?: "beginner" | "intermediate" | "advanced";
+    summary?: string;
+    incrementMessages?: number;
+  }
+): Promise<void> {
+  const existing = await getUserProfile(sessionId);
+
+  if (existing) {
+    // Merge interests (add new ones)
+    const mergedInterests = updates.interests
+      ? [...new Set([...existing.interests, ...updates.interests])]
+      : existing.interests;
+
+    // Merge common_errors (add counts)
+    const mergedErrors = { ...existing.common_errors };
+    if (updates.common_errors) {
+      for (const [key, value] of Object.entries(updates.common_errors)) {
+        mergedErrors[key] = (mergedErrors[key] || 0) + value;
+      }
+    }
+
+    await sql`
+      UPDATE user_profiles SET
+        interests = ${mergedInterests},
+        common_errors = ${JSON.stringify(mergedErrors)},
+        level = COALESCE(${updates.level || null}, level),
+        summary = COALESCE(${updates.summary || null}, summary),
+        total_messages = total_messages + ${updates.incrementMessages || 0},
+        updated_at = NOW()
+      WHERE session_id = ${sessionId}
+    `;
+  } else {
+    await sql`
+      INSERT INTO user_profiles (session_id, interests, common_errors, level, summary, total_messages)
+      VALUES (
+        ${sessionId},
+        ${updates.interests || []},
+        ${JSON.stringify(updates.common_errors || {})},
+        ${updates.level || "beginner"},
+        ${updates.summary || null},
+        ${updates.incrementMessages || 0}
+      )
+    `;
+  }
+}
+
+/**
+ * Generate a context string from user profile for injection into system prompt
+ */
+export function generateProfileContext(profile: UserProfile | null): string {
+  if (!profile) {
+    return "";
+  }
+
+  const lines: string[] = ["USER CONTEXT:"];
+
+  // Interests
+  if (profile.interests.length > 0) {
+    lines.push(`- Interests: ${profile.interests.join(", ")}`);
+  }
+
+  // Common errors (top 3)
+  const errorEntries = Object.entries(profile.common_errors)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3);
+  if (errorEntries.length > 0) {
+    const errorStr = errorEntries.map(([err, count]) => `${err} (${count}x)`).join(", ");
+    lines.push(`- Common errors: ${errorStr}`);
+  }
+
+  // Level
+  lines.push(`- Level: ${profile.level}`);
+
+  // Stats
+  lines.push(`- Total messages: ${profile.total_messages}`);
+
+  // Summary
+  if (profile.summary) {
+    lines.push(`- About this learner: ${profile.summary}`);
+  }
+
+  // Recommendation
+  if (errorEntries.length > 0) {
+    const topError = errorEntries[0][0];
+    lines.push(`\nFocus on correcting ${topError} errors when appropriate.`);
+  }
+
+  return lines.join("\n");
 }

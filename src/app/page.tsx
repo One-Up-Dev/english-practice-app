@@ -137,12 +137,13 @@ export default function Home() {
     return parseSuggestions(rawText).suggestions;
   }, [messages, getMessageText, parseSuggestions]);
 
-  // Save new messages to database
+  // Save new messages to database and update profile
   useEffect(() => {
     if (!sessionId || status === "streaming" || status === "submitted") return;
 
     const saveNewMessages = async () => {
       const newMessages = messages.slice(lastSavedMessageCount.current);
+      let messagesSaved = 0;
 
       for (const msg of newMessages) {
         const content = getMessageText(msg);
@@ -157,9 +158,26 @@ export default function Home() {
                 content,
               }),
             });
+            messagesSaved++;
           } catch (e) {
             console.error("Error saving message:", e);
           }
+        }
+      }
+
+      // Update user profile with message count
+      if (messagesSaved > 0) {
+        try {
+          await fetch("/api/profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sessionId,
+              incrementMessages: messagesSaved,
+            }),
+          });
+        } catch (e) {
+          console.error("Error updating profile:", e);
         }
       }
 
@@ -315,14 +333,36 @@ export default function Home() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
-      sendMessage({ text: input }, { body: { correctionMode } });
+      sendMessage({ text: input }, { body: { correctionMode, sessionId } });
       setInput("");
     }
   };
 
   // Handle suggestion click
   const handleSuggestionClick = (suggestion: string) => {
-    sendMessage({ text: suggestion }, { body: { correctionMode } });
+    sendMessage({ text: suggestion }, { body: { correctionMode, sessionId } });
+  };
+
+  // Handle category selection and track interest
+  const handleCategorySelect = async (categoryId: string) => {
+    setSelectedCategory(categoryId === selectedCategory ? null : categoryId);
+    setSidebarOpen(false);
+
+    // Track interest in profile
+    if (sessionId && categoryId !== selectedCategory) {
+      try {
+        await fetch("/api/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId,
+            interests: [categoryId],
+          }),
+        });
+      } catch (e) {
+        console.error("Error tracking interest:", e);
+      }
+    }
   };
 
   // Categories data
@@ -405,10 +445,7 @@ export default function Home() {
           {categories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => {
-                setSelectedCategory(cat.id === selectedCategory ? null : cat.id);
-                setSidebarOpen(false);
-              }}
+              onClick={() => handleCategorySelect(cat.id)}
               className={`w-full flex items-center gap-3 px-3 py-3 rounded text-sm transition-colors min-h-[44px] ${
                 selectedCategory === cat.id
                   ? "bg-primary/10 text-primary"
@@ -605,7 +642,7 @@ export default function Home() {
                   {categories.map((cat) => (
                     <button
                       key={cat.id}
-                      onClick={() => setSelectedCategory(cat.id)}
+                      onClick={() => handleCategorySelect(cat.id)}
                       className={`flex items-center gap-2 px-3 py-2 rounded text-sm ${cat.bgColor} ${cat.color}`}
                     >
                       <cat.icon size={16} />

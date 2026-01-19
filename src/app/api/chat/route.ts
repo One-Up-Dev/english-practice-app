@@ -6,6 +6,7 @@
 import { streamText, tool, convertToModelMessages } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { z } from "zod";
+import { getUserProfile, generateProfileContext } from "@/lib/db";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -264,13 +265,31 @@ const teacherTools = {
 
 export async function POST(req: Request) {
   try {
-    const { messages, correctionMode = false } = await req.json();
+    const { messages, correctionMode = false, sessionId } = await req.json();
 
     console.log("API received messages:", messages);
     console.log("Correction mode:", correctionMode);
+    console.log("Session ID:", sessionId);
 
-    // Choose system prompt based on mode
-    const systemPrompt = correctionMode ? CORRECTION_PROMPT : CONVERSATION_PROMPT;
+    // Choose base system prompt based on mode
+    let systemPrompt = correctionMode ? CORRECTION_PROMPT : CONVERSATION_PROMPT;
+
+    // Load user profile and inject context if available
+    if (sessionId) {
+      try {
+        const profile = await getUserProfile(sessionId);
+        const profileContext = generateProfileContext(profile);
+
+        if (profileContext) {
+          // Append user context to system prompt
+          systemPrompt = `${systemPrompt}\n\n${profileContext}`;
+          console.log("Injected profile context for session:", sessionId);
+        }
+      } catch (e) {
+        console.error("Error loading profile:", e);
+        // Continue without profile context
+      }
+    }
 
     const result = streamText({
       model: google("gemini-2.0-flash"),  // Version gratuite
