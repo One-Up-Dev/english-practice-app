@@ -421,28 +421,41 @@ export default function Home() {
 
         {/* Right Panel - Chat */}
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Mobile Header */}
-          <header className="lg:hidden flex items-center justify-between p-3 border-b border-border bg-card">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="p-2 rounded hover:bg-muted text-foreground min-h-[44px] min-w-[44px] flex items-center justify-center"
-            >
-              <Menu size={24} />
-            </button>
+          {/* Mobile Header - STICKY */}
+          <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between p-2 border-b border-border bg-card">
+            {/* Left: Menu + New Chat */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="p-2 rounded hover:bg-muted text-foreground min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="Open menu"
+              >
+                <Menu size={24} />
+              </button>
+              <button
+                onClick={startNewChat}
+                className="p-2 rounded hover:bg-muted text-primary min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="New chat"
+              >
+                <Plus size={22} />
+              </button>
+            </div>
 
-            {/* Mini Voice Orb for mobile */}
+            {/* Center: Mini Voice Orb */}
             <MiniVoiceOrb
               isSpeaking={isSpeaking}
               isListening={isListening}
               onStop={stopSpeaking}
             />
 
+            {/* Right: Voice + Theme */}
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setVoiceEnabled(!voiceEnabled)}
                 className={`p-2 rounded min-h-[44px] min-w-[44px] flex items-center justify-center ${
                   voiceEnabled ? "text-primary" : "text-muted-foreground"
                 }`}
+                aria-label={voiceEnabled ? "Disable voice" : "Enable voice"}
               >
                 {voiceEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
               </button>
