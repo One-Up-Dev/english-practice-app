@@ -116,17 +116,20 @@ I'm fine, thank you!|Not so good today.|Great, thanks!
 
 ---
 
-### 1.4 Contrôle de Vitesse TTS
-> Slider pour ajuster la vitesse de lecture
+### 1.4 Contrôle de Vitesse TTS ✅
+> Boutons pour ajuster la vitesse de lecture
 
 **Objectif :** Adapter à différents niveaux de compréhension
 
-**Todolist :**
-- [ ] Ajouter un state `speechRate` (0.5 à 1.5, défaut 0.9)
-- [ ] Créer un composant `SpeedControl` (slider ou boutons 0.5x/1x/1.5x)
-- [ ] Placer le contrôle dans la sidebar sous "Voice ON/OFF"
-- [ ] Sauvegarder la préférence dans localStorage
-- [ ] Appliquer le rate à `SpeechSynthesisUtterance`
+**Implémentation terminée :**
+- [x] State `speechRate` avec valeur par défaut 0.9
+- [x] Trois boutons : Slow (0.7x), Normal (0.9x), Fast (1.2x)
+- [x] Contrôle dans la sidebar (visible quand Voice ON)
+- [x] Préférence sauvegardée dans localStorage
+- [x] Rate appliqué à `SpeechSynthesisUtterance`
+
+**Fichiers modifiés :**
+- `src/app/page.tsx` - State, localStorage, UI buttons
 
 ---
 
@@ -573,8 +576,8 @@ Correction: "went" instead of "go"
 
 | Semaine | Phase | Features |
 |---------|-------|----------|
-| 1 | Quick Wins | Mode Correction ✅, Mobile responsive ✅, Suggestions ✅ |
-| 2 | Quick Wins + IA | Corrections inline visuel, Contrôle vitesse, Niveau adaptatif |
+| 1 | Quick Wins | Mode Correction ✅, Mobile ✅, Suggestions ✅, Vitesse TTS ✅ |
+| 2 | Quick Wins + IA | Corrections inline visuel, Niveau adaptatif |
 | 3 | IA | Corrections formatées, Nouveaux outils (grammar, pronunciation) |
 | 4 | IA + Engagement | Paramètres génération, Mémoire contextuelle, Streak counter |
 | 5 | Engagement | Niveau difficulté UI, Vocabulaire, Score session |
@@ -621,6 +624,7 @@ Correction: "went" instead of "go"
 ## Changelog
 
 ### 19 Janvier 2026
+- ✅ **1.4 Contrôle Vitesse TTS** - Boutons Slow/Normal/Fast pour la vitesse de lecture
 - ✅ **1.3 Suggestions de Réponses** - Boutons cliquables pour répondre rapidement
 - ✅ **1.0 Mode Correction** - Toggle entre conversation naturelle et corrections explicites
 - ✅ **1.2 Mobile Responsive** - Layout adaptatif avec header/footer fixes
