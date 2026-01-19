@@ -228,29 +228,34 @@ L'IA peut automatiquement utiliser ces outils quand :
 
 ---
 
-### 1.5.4 Paramètres de Génération
-> Ajuster temperature, maxTokens, etc.
+### 1.5.4 Paramètres de Génération ✅
+> Ajuster temperature, maxTokens automatiquement
 
 **Objectif :** Optimiser la qualité et la cohérence des réponses
 
-**Todolist :**
-- [ ] Ajouter `temperature` configurable (défaut: 0.7)
-- [ ] Ajouter `maxTokens` pour limiter les réponses longues (défaut: 300)
-- [ ] Tester différentes valeurs et documenter les résultats
-- [ ] Option "mode créatif" (temperature: 1.2) pour les histoires
-- [ ] Option "mode précis" (temperature: 0.3) pour les quiz
+**Implémentation terminée :**
+- [x] Fonction `getGenerationParams()` qui calcule automatiquement les paramètres
+- [x] Paramètres ajustés selon le mode ET la catégorie
+- [x] Catégorie envoyée du frontend à l'API
+- [x] Logs des paramètres pour debug
 
-**Configuration recommandée :**
-```typescript
-// Conversation normale
-{ temperature: 0.7, maxTokens: 300 }
+**Disponibilité :** Automatique (pas de configuration utilisateur nécessaire)
 
-// Quiz / Corrections
-{ temperature: 0.3, maxTokens: 200 }
+**Configuration automatique :**
 
-// Histoires / Role-play créatif
-{ temperature: 1.0, maxTokens: 500 }
-```
+| Contexte | Temperature | Max Tokens | Effet |
+|----------|-------------|------------|-------|
+| Mode Correction | 0.3 | 400 | Précis, corrections détaillées |
+| Catégorie Quiz | 0.3 | 300 | Très précis, réponses courtes |
+| Catégorie Role Play | 0.9 | 500 | Créatif, scénarios longs |
+| Catégorie Travel | 0.7 | 400 | Équilibré, pratique |
+| Conversation (défaut) | 0.7 | 350 | Naturel, équilibré |
+
+**Priorité :** Mode Correction > Catégorie > Défaut
+
+**Fichiers modifiés :**
+- `src/app/api/chat/route.ts` - Fonction getGenerationParams + paramètres streamText
+- `src/app/page.tsx` - Envoi de la catégorie dans le body
 
 ---
 
@@ -624,6 +629,7 @@ Correction: "went" instead of "go"
 ## Changelog
 
 ### 19 Janvier 2026
+- ✅ **1.5.4 Paramètres Génération** - Temperature/maxTokens auto selon mode et catégorie
 - ✅ **1.5.3 Nouveaux Outils IA** - grammarExplain, pronunciationTip, synonymSuggest
 - ✅ **1.5.2 Niveau Adaptatif** - System prompt dynamique (Beginner/Intermediate/Advanced)
 - ✅ **1.5.5 Mémoire Contextuelle** - Profils utilisateur avec intérêts, erreurs, niveau

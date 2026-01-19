@@ -368,14 +368,14 @@ export default function Home() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
-      sendMessage({ text: input }, { body: { correctionMode, sessionId, level } });
+      sendMessage({ text: input }, { body: { correctionMode, sessionId, level, category: selectedCategory } });
       setInput("");
     }
   };
 
   // Handle suggestion click
   const handleSuggestionClick = (suggestion: string) => {
-    sendMessage({ text: suggestion }, { body: { correctionMode, sessionId, level } });
+    sendMessage({ text: suggestion }, { body: { correctionMode, sessionId, level, category: selectedCategory } });
   };
 
   // Handle category selection and track interest

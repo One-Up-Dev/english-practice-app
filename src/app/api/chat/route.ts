@@ -681,14 +681,52 @@ const teacherTools = {
   }),
 };
 
+// ============================================
+// GENERATION PARAMETERS - Auto-configured
+// ============================================
+
+type GenerationParams = {
+  temperature: number;
+  maxTokens: number;
+};
+
+function getGenerationParams(correctionMode: boolean, category: string | null): GenerationParams {
+  // Mode Correction: precise, shorter responses
+  if (correctionMode) {
+    return { temperature: 0.3, maxTokens: 400 };
+  }
+
+  // Category-specific settings
+  switch (category) {
+    case "quiz":
+      // Quiz: very precise, focused answers
+      return { temperature: 0.3, maxTokens: 300 };
+    case "roleplay":
+      // Role Play: creative, longer scenarios
+      return { temperature: 0.9, maxTokens: 500 };
+    case "travel":
+      // Travel: moderately creative, practical
+      return { temperature: 0.7, maxTokens: 400 };
+    case "conversation":
+    default:
+      // Default conversation: balanced
+      return { temperature: 0.7, maxTokens: 350 };
+  }
+}
+
 export async function POST(req: Request) {
   try {
-    const { messages, correctionMode = false, sessionId, level = "beginner" } = await req.json();
+    const { messages, correctionMode = false, sessionId, level = "beginner", category = null } = await req.json();
 
     console.log("API received messages:", messages);
     console.log("Correction mode:", correctionMode);
     console.log("Level:", level);
+    console.log("Category:", category);
     console.log("Session ID:", sessionId);
+
+    // Get auto-configured generation parameters
+    const { temperature, maxTokens } = getGenerationParams(correctionMode, category);
+    console.log("Generation params:", { temperature, maxTokens });
 
     // Choose base system prompt based on mode
     let systemPrompt = correctionMode ? CORRECTION_PROMPT : CONVERSATION_PROMPT;
@@ -720,6 +758,8 @@ export async function POST(req: Request) {
       messages: await convertToModelMessages(messages),
       tools: teacherTools,
       maxSteps: 3,
+      temperature,
+      maxTokens,
     });
 
     return result.toUIMessageStreamResponse();
