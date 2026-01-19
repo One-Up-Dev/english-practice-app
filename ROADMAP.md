@@ -45,27 +45,31 @@ Why: Use past tense 'went' for actions that happened in the past.
 
 ---
 
-### 1.1 Corrections Inline (Visuel)
+### 1.1 Corrections Inline (Visuel) ✅
 > Affichage visuel des corrections avec mise en forme (rouge barré → vert)
 
 **Objectif :** Amélioration visuelle du mode Correction avec highlighting
 
 **Prérequis :** Mode Correction (1.0) ✅
 
-**Todolist :**
-- [ ] Parser les corrections de l'IA pour extraire "You said" / "Correct form"
-- [ ] Créer un composant `CorrectionHighlight` pour afficher :
-  - Texte erroné en ~~rouge barré~~
-  - Texte correct en **vert**
-- [ ] Ajouter un tooltip explicatif sur chaque correction (le "Why")
-- [ ] Tester avec différents types d'erreurs (grammaire, orthographe, vocabulaire)
-- [ ] Style accessible (pas uniquement basé sur la couleur)
+**Implémentation terminée :**
+- [x] Parser les corrections avec regex ("You said" / "Correct form" / "Why")
+- [x] Composant `CorrectionHighlight` créé
+- [x] Texte erroné en ~~rouge barré~~
+- [x] Texte correct en **vert**
+- [x] Explication "Why" en texte italique gris
+- [x] **Actif uniquement en Correction Mode** (pas en Conversation Mode)
+- [x] Border orange à gauche pour distinguer les blocs de correction
 
 **Exemple visuel :**
 ```
-"I ~~go~~ went to the cinema yesterday"
-       ↑ tooltip: "Use past tense for completed actions"
+┃ I go → I went
+┃ Use past tense for actions in the past.
 ```
+
+**Fichiers créés/modifiés :**
+- `src/components/CorrectionHighlight.tsx` - Nouveau composant
+- `src/app/page.tsx` - Intégration conditionnelle
 
 ---
 
@@ -576,8 +580,8 @@ Correction: "went" instead of "go"
 
 | Semaine | Phase | Features |
 |---------|-------|----------|
-| 1 | Quick Wins | Mode Correction ✅, Mobile ✅, Suggestions ✅, Vitesse TTS ✅ |
-| 2 | Quick Wins + IA | Corrections inline visuel, Niveau adaptatif |
+| 1 | Quick Wins | Mode Correction ✅, Mobile ✅, Suggestions ✅, Vitesse TTS ✅, Inline ✅ |
+| 2 | IA | Niveau adaptatif, Nouveaux outils, Paramètres génération |
 | 3 | IA | Corrections formatées, Nouveaux outils (grammar, pronunciation) |
 | 4 | IA + Engagement | Paramètres génération, Mémoire contextuelle, Streak counter |
 | 5 | Engagement | Niveau difficulté UI, Vocabulaire, Score session |
@@ -624,6 +628,7 @@ Correction: "went" instead of "go"
 ## Changelog
 
 ### 19 Janvier 2026
+- ✅ **1.1 Corrections Inline** - Highlighting visuel ~~rouge~~ → **vert** (Correction Mode uniquement)
 - ✅ **1.4 Contrôle Vitesse TTS** - Boutons Slow/Normal/Fast pour la vitesse de lecture
 - ✅ **1.3 Suggestions de Réponses** - Boutons cliquables pour répondre rapidement
 - ✅ **1.0 Mode Correction** - Toggle entre conversation naturelle et corrections explicites
