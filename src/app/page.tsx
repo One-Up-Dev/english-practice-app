@@ -180,8 +180,23 @@ export default function Home() {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [speechRate, setSpeechRate] = useState(0.9); // 0.5 to 1.5
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  // Load speech rate from localStorage on mount
+  useEffect(() => {
+    const savedRate = localStorage.getItem("english-practice-speech-rate");
+    if (savedRate) {
+      setSpeechRate(parseFloat(savedRate));
+    }
+  }, []);
+
+  // Save speech rate to localStorage when it changes
+  const updateSpeechRate = (rate: number) => {
+    setSpeechRate(rate);
+    localStorage.setItem("english-practice-speech-rate", rate.toString());
+  };
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -209,7 +224,7 @@ export default function Home() {
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "en-US";
-    utterance.rate = 0.9;
+    utterance.rate = speechRate;
     utterance.pitch = 1.1;
 
     const voices = window.speechSynthesis.getVoices();
@@ -432,6 +447,32 @@ export default function Home() {
             {voiceEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
             Voice {voiceEnabled ? "ON" : "OFF"}
           </button>
+
+          {/* Speech Speed Control - only show when voice is enabled */}
+          {voiceEnabled && (
+            <div className="px-3 py-2">
+              <p className="text-xs text-muted-foreground mb-2">Speech Speed</p>
+              <div className="flex gap-1">
+                {[
+                  { label: "Slow", rate: 0.7 },
+                  { label: "Normal", rate: 0.9 },
+                  { label: "Fast", rate: 1.2 },
+                ].map((option) => (
+                  <button
+                    key={option.label}
+                    onClick={() => updateSpeechRate(option.rate)}
+                    className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
+                      speechRate === option.rate
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Theme Toggle */}
           <div className="flex items-center justify-between px-3 py-2">
