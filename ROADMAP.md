@@ -111,7 +111,7 @@ Why: Use past tense 'went' for actions that happened in the past.
 
 **Implémentation terminée :**
 - [x] State `speechRate` avec valeur par défaut 0.9
-- [x] Trois boutons : Slow (0.7x), Normal (0.9x), Fast (1.2x)
+- [x] Trois boutons : Slow (0.7x), Normal (0.8x), Fast (0.9x)
 - [x] Contrôle dans la sidebar (visible quand Voice ON)
 - [x] Préférence sauvegardée dans localStorage
 - [x] Rate appliqué à `SpeechSynthesisUtterance`
@@ -349,22 +349,10 @@ CREATE TABLE user_streaks (
 
 ---
 
-### 2.3 Niveau de Difficulté
+### 2.3 Niveau de Difficulté ✅ (Doublon de 1.5.2)
 > Sélecteur Beginner / Intermediate / Advanced
 
-**Objectif :** Adapter le langage de l'IA au niveau de l'utilisateur
-
-**Todolist :**
-- [ ] Ajouter un state `difficulty` (beginner, intermediate, advanced)
-- [ ] Modifier le system prompt selon le niveau choisi
-- [ ] Créer un sélecteur dans la sidebar ou à l'onboarding
-- [ ] Sauvegarder la préférence dans localStorage
-- [ ] Indicateur visuel du niveau actuel
-
-**System prompts par niveau :**
-- Beginner: phrases courtes, vocabulaire simple, beaucoup d'encouragements
-- Intermediate: phrases normales, corrections détaillées
-- Advanced: expressions idiomatiques, nuances, moins de corrections
+**Statut :** Déjà implémenté dans la section 1.5.2 "Niveau Adaptatif"
 
 ---
 
@@ -388,19 +376,17 @@ CREATE TABLE user_streaks (
 
 ## Phase 3 : Expérience Vocale (Impact Moyen / Effort Moyen)
 
-### 3.1 Mode Conversation Continue
+### 3.1 Mode Conversation Continue ❌ RETIRÉ
 > Push-to-talk sans taper
 
-**Objectif :** Expérience plus naturelle et immersive
+**Statut :** Feature retirée le 19 Janvier 2026
 
-**Todolist :**
-- [ ] Ajouter un toggle "Conversation Mode" dans la sidebar
-- [ ] En mode conversation : clic sur l'orbe = start listening
-- [ ] Quand l'utilisateur arrête de parler → envoyer automatiquement
-- [ ] Quand l'IA répond → TTS automatique
-- [ ] Quand TTS finit → re-activer l'écoute (boucle)
-- [ ] Bouton "Pause" pour interrompre la boucle
-- [ ] Indicateur visuel clair de l'état (Listening → Processing → Speaking)
+**Raison :** Bugs persistants avec Web Speech API (conflits entre TTS et reconnaissance vocale, coupures audio, closures stale). La coordination entre fin TTS → démarrage micro → fin reconnaissance → envoi → réponse → TTS créait trop de race conditions.
+
+**Fonctionnalité actuelle suffisante :**
+- TTS automatique quand l'IA répond ✅
+- Bouton micro pour parler ✅
+- Contrôle vitesse TTS ✅
 
 ---
 
@@ -561,7 +547,7 @@ Correction: "went" instead of "go"
 
 | Semaine | Phase | Features |
 |---------|-------|----------|
-| 1 | Quick Wins | Mode Correction ✅, Mobile ✅, Suggestions ✅, Vitesse TTS ✅, Inline ✅ |
+| 1 | Quick Wins | Mode Correction ✅, Mobile ✅, Vitesse TTS ✅, Inline ✅ |
 | 2 | IA | Niveau adaptatif, Nouveaux outils, Paramètres génération |
 | 3 | IA | Corrections formatées, Nouveaux outils (grammar, pronunciation) |
 | 4 | IA + Engagement | Paramètres génération, Mémoire contextuelle, Streak counter |
@@ -610,13 +596,12 @@ Correction: "went" instead of "go"
 
 ### 19 Janvier 2026
 - ❌ **3.1 Mode Conversation Continue** - Feature retirée (bugs Web Speech API)
-- ❌ **1.3 Suggestions de Réponses** - Feature retirée (revert)
+- ❌ **1.3 Suggestions de Réponses** - Feature retirée
 - ✅ **1.5.4 Paramètres Génération** - Temperature/maxTokens auto selon mode et catégorie
 - ✅ **1.5.3 Nouveaux Outils IA** - grammarExplain, pronunciationTip, synonymSuggest
 - ✅ **1.5.2 Niveau Adaptatif** - System prompt dynamique (Beginner/Intermediate/Advanced)
 - ✅ **1.5.5 Mémoire Contextuelle** - Profils utilisateur avec intérêts, erreurs, niveau
 - ✅ **1.1 Corrections Inline** - Highlighting visuel ~~rouge~~ → **vert** (Correction Mode uniquement)
-- ✅ **1.4 Contrôle Vitesse TTS** - Boutons Slow/Normal/Fast pour la vitesse de lecture
-- ✅ **1.3 Suggestions de Réponses** - Boutons cliquables pour répondre rapidement
+- ✅ **1.4 Contrôle Vitesse TTS** - Boutons Slow (0.7) / Normal (0.8) / Fast (0.9)
 - ✅ **1.0 Mode Correction** - Toggle entre conversation naturelle et corrections explicites
 - ✅ **1.2 Mobile Responsive** - Layout adaptatif avec header/footer fixes
