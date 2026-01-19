@@ -171,7 +171,7 @@ export default function Home() {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
-  const [speechRate, setSpeechRate] = useState(0.9); // 0.5 to 1.5
+  const [speechRate, setSpeechRate] = useState(0.8); // Default: Normal
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
@@ -517,8 +517,8 @@ export default function Home() {
               <div className="flex gap-1">
                 {[
                   { label: "Slow", rate: 0.7 },
-                  { label: "Normal", rate: 0.9 },
-                  { label: "Fast", rate: 1.2 },
+                  { label: "Normal", rate: 0.8 },
+                  { label: "Fast", rate: 0.9 },
                 ].map((option) => (
                   <button
                     key={option.label}
