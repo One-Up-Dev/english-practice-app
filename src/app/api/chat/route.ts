@@ -3,7 +3,7 @@
  * Utilise AI SDK avec Google Gemini
  */
 
-import { streamText, tool, UIMessage, convertToModelMessages } from "ai";
+import { streamText, tool, convertToModelMessages } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { z } from "zod";
 
@@ -129,7 +129,7 @@ const teacherTools = {
 
 export async function POST(req: Request) {
   try {
-    const { messages }: { messages: UIMessage[] } = await req.json();
+    const { messages } = await req.json();
 
     console.log("API received messages:", messages);
 

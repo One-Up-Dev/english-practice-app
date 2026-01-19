@@ -39,10 +39,10 @@ export default function Home() {
             // Convert DB messages to UI messages format
             const uiMessages = data.messages.map((msg: { id: number; role: string; content: string; created_at: string }) => ({
               id: `db-${msg.id}`,
-              role: msg.role,
-              parts: [{ type: "text", text: msg.content }],
+              role: msg.role as "user" | "assistant",
+              parts: [{ type: "text" as const, text: msg.content }],
             }));
-            setMessages(uiMessages);
+            setMessages(uiMessages as Parameters<typeof setMessages>[0]);
             lastSavedMessageCount.current = data.messages.length;
             setIsLoadingSession(false);
             return;
