@@ -3,6 +3,15 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useEffect, useRef, useState, useCallback } from "react";
+
+// Hook to always get the latest value in callbacks (prevents stale closures)
+function useLatest<T>(value: T) {
+  const ref = useRef(value);
+  useEffect(() => {
+    ref.current = value;
+  }, [value]);
+  return ref;
+}
 import {
   Languages,
   Bot,
@@ -176,11 +185,20 @@ export default function Home() {
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [speechRate, setSpeechRate] = useState(0.9); // 0.5 to 1.5
   const [continuousMode, setContinuousMode] = useState(false);
-  const continuousModeRef = useRef(false); // Ref for callbacks
   const lastSpokenMessageId = useRef<string | null>(null); // Track last spoken message
   const isSpeakingRef = useRef(false); // Track speaking state for callbacks
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  // Stable refs for values used in callbacks (prevents stale closures)
+  const continuousModeRef = useLatest(continuousMode);
+  const correctionModeRef = useLatest(correctionMode);
+  const sessionIdRef = useLatest(sessionId);
+  const levelRef = useLatest(level);
+  const selectedCategoryRef = useLatest(selectedCategory);
+
+  // Ref to hold the latest startListening function (set after function is defined)
+  const startListeningRef = useRef<() => void>(() => {});
 
   // Load speech rate from localStorage on mount
   useEffect(() => {
@@ -190,10 +208,6 @@ export default function Home() {
     }
   }, []);
 
-  // Sync continuousMode ref with state (for use in callbacks)
-  useEffect(() => {
-    continuousModeRef.current = continuousMode;
-  }, [continuousMode]);
 
   // Save speech rate to localStorage when it changes
   const updateSpeechRate = (rate: number) => {
@@ -285,11 +299,13 @@ export default function Home() {
       setIsSpeaking(false);
       isSpeakingRef.current = false;
       // In continuous mode, restart listening after TTS finishes
+      // Use refs to always get latest values (prevents stale closures)
       if (continuousModeRef.current) {
         // Delay to avoid overlap and let the audio system settle
         setTimeout(() => {
           if (continuousModeRef.current && !isSpeakingRef.current) {
-            startListening();
+            // Call the latest version of startListening via ref
+            startListeningRef.current();
           }
         }, 500);
       }
@@ -303,10 +319,11 @@ export default function Home() {
     window.speechSynthesis.speak(utterance);
   };
 
-  // Speech-to-Text function
-  const startListening = () => {
+  // Speech-to-Text function - using refs for stable callback access
+  const startListening = useCallback(() => {
     // Don't start if already listening or speaking
-    if (isListening || isSpeakingRef.current) return;
+    if (recognitionRef.current) return; // Already has an active recognition
+    if (isSpeakingRef.current) return;
 
     if (
       typeof window === "undefined" ||
@@ -329,11 +346,18 @@ export default function Home() {
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
 
-      // In continuous mode, send message automatically
+      // Use refs to always get latest values (prevents stale closures)
       if (continuousModeRef.current && transcript.trim()) {
         sendMessage(
           { text: transcript },
-          { body: { correctionMode, sessionId, level, category: selectedCategory } }
+          {
+            body: {
+              correctionMode: correctionModeRef.current,
+              sessionId: sessionIdRef.current,
+              level: levelRef.current,
+              category: selectedCategoryRef.current
+            }
+          }
         );
       } else {
         // Normal mode: put in input field
@@ -344,31 +368,42 @@ export default function Home() {
     recognition.onerror = (event) => {
       console.error("Speech recognition error:", event.error);
       setIsListening(false);
+      recognitionRef.current = null;
     };
 
-    recognition.onend = () => setIsListening(false);
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
 
     recognitionRef.current = recognition;
     recognition.start();
-  };
+  }, [sendMessage, continuousModeRef, correctionModeRef, sessionIdRef, levelRef, selectedCategoryRef]);
 
-  const stopListening = () => {
+  // Keep startListeningRef updated with the latest function
+  useEffect(() => {
+    startListeningRef.current = startListening;
+  }, [startListening]);
+
+  const stopListening = useCallback(() => {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
+      recognitionRef.current = null;
       setIsListening(false);
     }
-  };
+  }, []);
 
-  const stopSpeaking = () => {
+  const stopSpeaking = useCallback(() => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
     setIsSpeaking(false);
-  };
+    isSpeakingRef.current = false;
+  }, []);
 
   // Toggle continuous conversation mode
-  const toggleContinuousMode = () => {
-    if (continuousMode) {
+  const toggleContinuousMode = useCallback(() => {
+    if (continuousModeRef.current) {
       // Stopping: cancel everything
       setContinuousMode(false);
       stopListening();
@@ -377,10 +412,10 @@ export default function Home() {
       // Starting: enable voice and start listening
       setContinuousMode(true);
       setVoiceEnabled(true); // Ensure voice is on
-      // Start listening after a brief delay
-      setTimeout(() => startListening(), 100);
+      // Start listening after a brief delay using ref for latest function
+      setTimeout(() => startListeningRef.current(), 100);
     }
-  };
+  }, [stopListening, stopSpeaking, continuousModeRef]);
 
   // Start new conversation
   const startNewChat = async () => {
