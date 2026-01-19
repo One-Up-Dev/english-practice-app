@@ -388,33 +388,19 @@ CREATE TABLE user_streaks (
 
 ## Phase 3 : Expérience Vocale (Impact Moyen / Effort Moyen)
 
-### 3.1 Mode Conversation Continue ✅
-> Push-to-talk sans taper (Hands-Free Mode)
+### 3.1 Mode Conversation Continue
+> Push-to-talk sans taper
 
 **Objectif :** Expérience plus naturelle et immersive
 
-**Implémentation terminée :**
-- [x] Toggle "Hands-Free Mode" dans la sidebar (visible quand Voice ON)
-- [x] Clic sur le toggle = démarre l'écoute automatique
-- [x] Quand l'utilisateur arrête de parler → message envoyé automatiquement
-- [x] Quand l'IA répond → TTS automatique (existant)
-- [x] Quand TTS finit → écoute redémarre automatiquement (boucle)
-- [x] Bouton pour arrêter ("Stop Conversation")
-- [x] Indicateur visuel de l'état (Listening / Processing / Speaking / Ready)
-- [x] Point vert sur l'orbe mobile quand mode actif
-- [x] Badge "Hands-Free Active" sur desktop
-
-**Disponibilité :** Tous les modes (Conversation ET Correction)
-
-**Flow :**
-```
-[Click Hands-Free] → Listening → User speaks → Processing → AI responds → Speaking → [Loop back to Listening]
-                                                                                    ↓
-                                                            [Click Stop] → Mode OFF
-```
-
-**Fichiers modifiés :**
-- `src/app/page.tsx` - State, toggle, boucle vocale, indicateurs
+**Todolist :**
+- [ ] Ajouter un toggle "Conversation Mode" dans la sidebar
+- [ ] En mode conversation : clic sur l'orbe = start listening
+- [ ] Quand l'utilisateur arrête de parler → envoyer automatiquement
+- [ ] Quand l'IA répond → TTS automatique
+- [ ] Quand TTS finit → re-activer l'écoute (boucle)
+- [ ] Bouton "Pause" pour interrompre la boucle
+- [ ] Indicateur visuel clair de l'état (Listening → Processing → Speaking)
 
 ---
 
@@ -623,8 +609,8 @@ Correction: "went" instead of "go"
 ## Changelog
 
 ### 19 Janvier 2026
+- ❌ **3.1 Mode Conversation Continue** - Feature retirée (bugs Web Speech API)
 - ❌ **1.3 Suggestions de Réponses** - Feature retirée (revert)
-- ✅ **3.1 Mode Conversation Continue** - Hands-Free Mode avec boucle vocale automatique
 - ✅ **1.5.4 Paramètres Génération** - Temperature/maxTokens auto selon mode et catégorie
 - ✅ **1.5.3 Nouveaux Outils IA** - grammarExplain, pronunciationTip, synonymSuggest
 - ✅ **1.5.2 Niveau Adaptatif** - System prompt dynamique (Beginner/Intermediate/Advanced)

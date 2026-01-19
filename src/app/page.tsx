@@ -7,7 +7,6 @@ import {
   Languages,
   Bot,
   Mic,
-  MicOff,
   Volume2,
   VolumeX,
   Plus,
@@ -23,8 +22,6 @@ import {
   MessageCircle,
   PenLine,
   GraduationCap,
-  MessageSquare,
-  Pause,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CorrectionHighlight } from "@/components/CorrectionHighlight";
@@ -175,8 +172,6 @@ export default function Home() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [speechRate, setSpeechRate] = useState(0.9); // 0.5 to 1.5
-  const [continuousMode, setContinuousMode] = useState(false);
-  const continuousModeRef = useRef(false); // Ref for callbacks
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
@@ -187,11 +182,6 @@ export default function Home() {
       setSpeechRate(parseFloat(savedRate));
     }
   }, []);
-
-  // Sync continuousMode ref with state (for use in callbacks)
-  useEffect(() => {
-    continuousModeRef.current = continuousMode;
-  }, [continuousMode]);
 
   // Save speech rate to localStorage when it changes
   const updateSpeechRate = (rate: number) => {
@@ -268,16 +258,7 @@ export default function Home() {
     }
 
     utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => {
-      setIsSpeaking(false);
-      // In continuous mode, restart listening after TTS finishes
-      if (continuousModeRef.current) {
-        // Small delay to avoid overlap
-        setTimeout(() => {
-          startListening();
-        }, 300);
-      }
-    };
+    utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = () => setIsSpeaking(false);
 
     window.speechSynthesis.speak(utterance);
@@ -305,24 +286,12 @@ export default function Home() {
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
-
-      // In continuous mode, send message automatically
-      if (continuousModeRef.current && transcript.trim()) {
-        sendMessage(
-          { text: transcript },
-          { body: { correctionMode, sessionId, level, category: selectedCategory } }
-        );
-      } else {
-        // Normal mode: put in input field
-        setInput(transcript);
-      }
+      setInput(transcript);
     };
 
     recognition.onerror = (event) => {
       console.error("Speech recognition error:", event.error);
       setIsListening(false);
-      // In continuous mode, don't stop on errors like "no-speech"
-      // The loop will restart via TTS onend
     };
 
     recognition.onend = () => setIsListening(false);
@@ -343,22 +312,6 @@ export default function Home() {
       window.speechSynthesis.cancel();
     }
     setIsSpeaking(false);
-  };
-
-  // Toggle continuous conversation mode
-  const toggleContinuousMode = () => {
-    if (continuousMode) {
-      // Stopping: cancel everything
-      setContinuousMode(false);
-      stopListening();
-      stopSpeaking();
-    } else {
-      // Starting: enable voice and start listening
-      setContinuousMode(true);
-      setVoiceEnabled(true); // Ensure voice is on
-      // Start listening after a brief delay
-      setTimeout(() => startListening(), 100);
-    }
   };
 
   // Start new conversation
@@ -557,21 +510,6 @@ export default function Home() {
             Voice {voiceEnabled ? "ON" : "OFF"}
           </button>
 
-          {/* Continuous Mode Toggle - only show when voice is enabled */}
-          {voiceEnabled && (
-            <button
-              onClick={toggleContinuousMode}
-              className={`w-full flex items-center gap-3 px-3 py-3 rounded text-sm transition-colors min-h-[44px] ${
-                continuousMode
-                  ? "bg-green-500/10 text-green-500 animate-pulse"
-                  : "text-muted-foreground hover:bg-muted"
-              }`}
-            >
-              {continuousMode ? <Pause size={18} /> : <MessageSquare size={18} />}
-              {continuousMode ? "Stop Conversation" : "Hands-Free Mode"}
-            </button>
-          )}
-
           {/* Speech Speed Control - only show when voice is enabled */}
           {voiceEnabled && (
             <div className="px-3 py-2">
@@ -624,21 +562,10 @@ export default function Home() {
             {isListening && (
               <p className="text-sm text-red-500 animate-pulse">Listening...</p>
             )}
-            {isLoading && !isSpeaking && !isListening && (
-              <p className="text-sm text-yellow-500 animate-pulse">Processing...</p>
-            )}
-            {!isSpeaking && !isListening && !isLoading && (
+            {!isSpeaking && !isListening && (
               <p className="text-sm text-muted-foreground">Ready to chat</p>
             )}
           </div>
-
-          {/* Continuous Mode indicator */}
-          {continuousMode && (
-            <div className="mt-2 px-3 py-1.5 rounded text-xs font-medium bg-green-500/20 text-green-500 flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              Hands-Free Active
-            </div>
-          )}
 
           {/* Mode indicator on desktop */}
           <div className={`mt-4 px-3 py-1.5 rounded text-sm font-medium ${
@@ -698,22 +625,11 @@ export default function Home() {
 
             {/* Center: Mini Voice Orb + Mode + Level indicators */}
             <div className="flex items-center gap-1.5">
-              {/* Continuous mode toggle on orb */}
-              <button
-                onClick={voiceEnabled ? toggleContinuousMode : undefined}
-                disabled={!voiceEnabled}
-                className="relative"
-              >
-                <MiniVoiceOrb
-                  isSpeaking={isSpeaking}
-                  isListening={isListening}
-                  onStop={stopSpeaking}
-                />
-                {/* Continuous mode indicator dot */}
-                {continuousMode && (
-                  <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-card animate-pulse" />
-                )}
-              </button>
+              <MiniVoiceOrb
+                isSpeaking={isSpeaking}
+                isListening={isListening}
+                onStop={stopSpeaking}
+              />
               {/* Mode toggle - tap to switch */}
               <button
                 onClick={() => setCorrectionMode(!correctionMode)}
