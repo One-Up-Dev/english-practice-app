@@ -28,8 +28,10 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { CorrectionHighlight } from "@/components/CorrectionHighlight";
 import { ScenarioModal } from "@/components/ScenarioModal";
 import { ScenarioBar, ScenarioComplete } from "@/components/ScenarioBar";
+import { TTSModeIndicator } from "@/components/TTSModeIndicator";
 import { Scenario } from "@/lib/scenarios";
 import { stripEmotions } from "@/lib/emotions";
+import { useTTS } from "@/hooks/useTTS";
 
 export default function Home() {
   // Session management
@@ -182,26 +184,28 @@ export default function Home() {
   }, [error]);
 
   const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
-  const [speechRate, setSpeechRate] = useState(0.8); // Default: Normal
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const lastSpokenMessageId = useRef<string | null>(null); // Track last spoken message
 
-  // Load speech rate from localStorage on mount
-  useEffect(() => {
-    const savedRate = localStorage.getItem("english-practice-speech-rate");
-    if (savedRate) {
-      setSpeechRate(parseFloat(savedRate));
-    }
-  }, []);
-
-  // Save speech rate to localStorage when it changes
-  const updateSpeechRate = (rate: number) => {
-    setSpeechRate(rate);
-    localStorage.setItem("english-practice-speech-rate", rate.toString());
-  };
+  // TTS Hook with ElevenLabs + Browser fallback
+  const {
+    speak: speakText,
+    stop: stopSpeaking,
+    isSpeaking,
+    isLoading: isTTSLoading,
+    mode: ttsMode,
+    setMode: setTTSMode,
+    speechRate,
+    setSpeechRate: updateSpeechRate,
+    activeProvider,
+    credits: ttsCredits,
+    fallbackActive,
+    fallbackReason,
+    elevenLabsConfigured,
+    resetFallback,
+  } = useTTS();
 
   // Load level from localStorage on mount
   useEffect(() => {
@@ -254,34 +258,7 @@ export default function Home() {
         speakText(cleanText);
       }
     }
-  }, [messages, status, voiceEnabled, getMessageText]);
-
-  // Text-to-Speech function
-  const speakText = (text: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    utterance.rate = speechRate;
-    utterance.pitch = 1.1;
-
-    const voices = window.speechSynthesis.getVoices();
-    const englishVoice =
-      voices.find((v) => v.lang.startsWith("en") && v.name.includes("Female")) ||
-      voices.find((v) => v.lang.startsWith("en"));
-
-    if (englishVoice) {
-      utterance.voice = englishVoice;
-    }
-
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-
-    window.speechSynthesis.speak(utterance);
-  };
+  }, [messages, status, voiceEnabled, getMessageText, speakText]);
 
   // Speech-to-Text function
   const startListening = () => {
@@ -324,13 +301,6 @@ export default function Home() {
       recognitionRef.current.stop();
       setIsListening(false);
     }
-  };
-
-  const stopSpeaking = () => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
-    setIsSpeaking(false);
   };
 
   // Start new conversation
@@ -679,30 +649,45 @@ export default function Home() {
             Voice {voiceEnabled ? "ON" : "OFF"}
           </button>
 
-          {/* Speech Speed Control - only show when voice is enabled */}
+          {/* TTS Mode & Speed Controls - only show when voice is enabled */}
           {voiceEnabled && (
-            <div className="px-3 py-2">
-              <p className="text-xs text-muted-foreground mb-2">Speech Speed</p>
-              <div className="flex gap-1">
-                {[
-                  { label: "Slow", rate: 0.7 },
-                  { label: "Normal", rate: 0.8 },
-                  { label: "Fast", rate: 0.9 },
-                ].map((option) => (
-                  <button
-                    key={option.label}
-                    onClick={() => updateSpeechRate(option.rate)}
-                    className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
-                      speechRate === option.rate
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+            <>
+              {/* TTS Mode Indicator */}
+              <TTSModeIndicator
+                mode={ttsMode}
+                activeProvider={activeProvider}
+                fallbackActive={fallbackActive}
+                fallbackReason={fallbackReason}
+                credits={ttsCredits}
+                elevenLabsConfigured={elevenLabsConfigured}
+                onModeChange={setTTSMode}
+                onResetFallback={resetFallback}
+              />
+
+              {/* Speech Speed Control */}
+              <div className="px-3 py-2">
+                <p className="text-xs text-muted-foreground mb-2">Speech Speed</p>
+                <div className="flex gap-1">
+                  {[
+                    { label: "Slow", rate: 0.7 },
+                    { label: "Normal", rate: 0.8 },
+                    { label: "Fast", rate: 0.9 },
+                  ].map((option) => (
+                    <button
+                      key={option.label}
+                      onClick={() => updateSpeechRate(option.rate)}
+                      className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
+                        speechRate === option.rate
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            </>
           )}
 
           {/* Theme Toggle */}
@@ -844,6 +829,19 @@ export default function Home() {
               }`}>
                 {level === "beginner" ? "B" : level === "intermediate" ? "I" : "A"}
               </span>
+              {/* TTS Mode indicator (compact) */}
+              {voiceEnabled && (
+                <TTSModeIndicator
+                  mode={ttsMode}
+                  activeProvider={activeProvider}
+                  fallbackActive={fallbackActive}
+                  fallbackReason={fallbackReason}
+                  credits={ttsCredits}
+                  elevenLabsConfigured={elevenLabsConfigured}
+                  onModeChange={setTTSMode}
+                  compact
+                />
+              )}
             </div>
 
             {/* Right: Voice + Theme */}

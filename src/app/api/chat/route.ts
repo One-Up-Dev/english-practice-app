@@ -723,24 +723,24 @@ type GenerationParams = {
 function getGenerationParams(correctionMode: boolean, category: string | null): GenerationParams {
   // Mode Correction: precise, shorter responses
   if (correctionMode) {
-    return { temperature: 0.3, maxTokens: 400 };
+    return { temperature: 0.3, maxTokens: 300 };
   }
 
-  // Category-specific settings
+  // Category-specific settings (optimized for cost)
   switch (category) {
     case "quiz":
       // Quiz: very precise, focused answers
-      return { temperature: 0.3, maxTokens: 300 };
+      return { temperature: 0.3, maxTokens: 200 };
     case "roleplay":
       // Role Play: creative, longer scenarios
-      return { temperature: 0.9, maxTokens: 500 };
+      return { temperature: 0.9, maxTokens: 400 };
     case "travel":
       // Travel: moderately creative, practical
-      return { temperature: 0.7, maxTokens: 400 };
+      return { temperature: 0.7, maxTokens: 300 };
     case "conversation":
     default:
       // Default conversation: balanced
-      return { temperature: 0.7, maxTokens: 350 };
+      return { temperature: 0.7, maxTokens: 250 };
   }
 }
 
