@@ -7,6 +7,7 @@ import { streamText, tool, convertToModelMessages } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { z } from "zod";
 import { getUserProfile, generateProfileContext } from "@/lib/db";
+import { getScenarioById } from "@/lib/scenarios";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -686,13 +687,23 @@ function getGenerationParams(correctionMode: boolean, category: string | null): 
 
 export async function POST(req: Request) {
   try {
-    const { messages, correctionMode = false, sessionId, level = "beginner", category = null } = await req.json();
+    const {
+      messages,
+      correctionMode = false,
+      sessionId,
+      level = "beginner",
+      category = null,
+      scenarioId = null,
+      scenarioStep = 0
+    } = await req.json();
 
     console.log("API received messages:", messages);
     console.log("Correction mode:", correctionMode);
     console.log("Level:", level);
     console.log("Category:", category);
     console.log("Session ID:", sessionId);
+    console.log("Scenario ID:", scenarioId);
+    console.log("Scenario Step:", scenarioStep);
 
     // Get auto-configured generation parameters
     const { temperature, maxTokens } = getGenerationParams(correctionMode, category);
@@ -719,6 +730,37 @@ export async function POST(req: Request) {
       } catch (e) {
         console.error("Error loading profile:", e);
         // Continue without profile context
+      }
+    }
+
+    // Inject scenario context if a scenario is active
+    if (scenarioId) {
+      const scenario = getScenarioById(scenarioId);
+      if (scenario && scenario.steps[scenarioStep]) {
+        const step = scenario.steps[scenarioStep];
+        const scenarioContext = `
+ACTIVE SCENARIO: "${scenario.title}"
+Category: ${scenario.category}
+Difficulty: ${scenario.difficulty}
+Current Step: ${scenarioStep + 1} of ${scenario.steps.length}
+
+STUDENT INSTRUCTION (what they should do): ${step.instruction}
+
+YOUR ROLE FOR THIS STEP: ${step.aiPrompt}
+
+IMPORTANT GUIDELINES:
+- Stay in character as described in the AI role above
+- Guide the student naturally through this step
+- When they successfully complete what the instruction asks, acknowledge their success warmly
+- Keep responses conversational but focused on the scenario
+- If they struggle, give gentle hints without giving away the answer
+- Do NOT move to the next step automatically - let the student control the pace
+- If they say something off-topic, gently guide them back to the scenario
+
+VOCABULARY TO REINFORCE: ${scenario.vocabularyFocus?.join(", ") || "general conversation"}
+`;
+        systemPrompt = `${systemPrompt}\n\n${scenarioContext}`;
+        console.log("Injected scenario context:", scenario.title, "step", scenarioStep + 1);
       }
     }
 

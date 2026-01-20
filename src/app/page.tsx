@@ -22,9 +22,13 @@ import {
   MessageCircle,
   PenLine,
   GraduationCap,
+  Map,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CorrectionHighlight } from "@/components/CorrectionHighlight";
+import { ScenarioModal } from "@/components/ScenarioModal";
+import { ScenarioBar, ScenarioComplete } from "@/components/ScenarioBar";
+import { Scenario } from "@/lib/scenarios";
 
 export default function Home() {
   // Session management
@@ -47,6 +51,14 @@ export default function Home() {
   // Language level state
   type Level = "beginner" | "intermediate" | "advanced";
   const [level, setLevel] = useState<Level>("beginner");
+
+  // Scenario state
+  type ScenarioWithProgress = Scenario & { progress: { currentStep: number; completed: boolean; totalSteps: number } | null };
+  const [scenarioModalOpen, setScenarioModalOpen] = useState(false);
+  const [scenariosWithProgress, setScenariosWithProgress] = useState<ScenarioWithProgress[]>([]);
+  const [activeScenario, setActiveScenario] = useState<Scenario | null>(null);
+  const [scenarioStep, setScenarioStep] = useState(0);
+  const [showScenarioComplete, setShowScenarioComplete] = useState(false);
 
   // useChat hook with new API
   const { messages, sendMessage, status, error, setMessages } = useChat({
@@ -330,17 +342,153 @@ export default function Home() {
         setMessages([]);
         lastSavedMessageCount.current = 0;
         setSidebarOpen(false);
+        // Clear active scenario when starting new chat
+        setActiveScenario(null);
+        setScenarioStep(0);
       }
     } catch (e) {
       console.error("Error creating new session:", e);
     }
   };
 
+  // Fetch scenarios with progress
+  const fetchScenarios = useCallback(async () => {
+    if (!sessionId) return;
+    try {
+      const res = await fetch(`/api/scenarios?sessionId=${sessionId}`);
+      const data = await res.json();
+      if (data.success) {
+        setScenariosWithProgress(data.scenarios);
+      }
+    } catch (e) {
+      console.error("Error fetching scenarios:", e);
+    }
+  }, [sessionId]);
+
+  // Fetch scenarios when modal opens or session changes
+  useEffect(() => {
+    if (scenarioModalOpen && sessionId) {
+      fetchScenarios();
+    }
+  }, [scenarioModalOpen, sessionId, fetchScenarios]);
+
+  // Handle scenario selection
+  const handleScenarioSelect = async (scenario: Scenario) => {
+    setActiveScenario(scenario);
+    setScenarioModalOpen(false);
+
+    // Load existing progress if any
+    if (sessionId) {
+      try {
+        const res = await fetch(`/api/scenarios/progress?sessionId=${sessionId}&scenarioId=${scenario.id}`);
+        const data = await res.json();
+        if (data.success && data.progress) {
+          setScenarioStep(data.progress.currentStep);
+        } else {
+          setScenarioStep(0);
+          // Initialize progress in DB
+          await fetch("/api/scenarios/progress", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId, scenarioId: scenario.id, currentStep: 0 }),
+          });
+        }
+      } catch (e) {
+        console.error("Error loading scenario progress:", e);
+        setScenarioStep(0);
+      }
+    }
+  };
+
+  // Handle next step in scenario
+  const handleNextStep = async () => {
+    if (!activeScenario || !sessionId) return;
+
+    const nextStep = scenarioStep + 1;
+    const isComplete = nextStep >= activeScenario.steps.length;
+
+    if (isComplete) {
+      // Mark as complete
+      await fetch("/api/scenarios/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, scenarioId: activeScenario.id, currentStep: nextStep - 1, completed: true }),
+      });
+      setShowScenarioComplete(true);
+    } else {
+      setScenarioStep(nextStep);
+      // Save progress
+      await fetch("/api/scenarios/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, scenarioId: activeScenario.id, currentStep: nextStep }),
+      });
+    }
+  };
+
+  // Handle previous step in scenario
+  const handlePrevStep = async () => {
+    if (!activeScenario || !sessionId || scenarioStep <= 0) return;
+
+    const prevStep = scenarioStep - 1;
+    setScenarioStep(prevStep);
+
+    // Save progress
+    await fetch("/api/scenarios/progress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId, scenarioId: activeScenario.id, currentStep: prevStep }),
+    });
+  };
+
+  // Handle exit scenario
+  const handleExitScenario = () => {
+    setActiveScenario(null);
+    setScenarioStep(0);
+    // Refresh scenarios list to show updated progress
+    fetchScenarios();
+  };
+
+  // Handle scenario complete close
+  const handleScenarioCompleteClose = () => {
+    setShowScenarioComplete(false);
+    setActiveScenario(null);
+    setScenarioStep(0);
+    fetchScenarios();
+  };
+
+  // Handle restart scenario
+  const handleRestartScenario = async () => {
+    if (!activeScenario || !sessionId) return;
+
+    setShowScenarioComplete(false);
+    setScenarioStep(0);
+
+    // Reset progress in DB
+    await fetch("/api/scenarios/progress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId, scenarioId: activeScenario.id, currentStep: 0, completed: false }),
+    });
+  };
+
   // Handle form submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
-      sendMessage({ text: input }, { body: { correctionMode, sessionId, level, category: selectedCategory } });
+      sendMessage(
+        { text: input },
+        {
+          body: {
+            correctionMode,
+            sessionId,
+            level,
+            category: activeScenario?.category || selectedCategory,
+            scenarioId: activeScenario?.id || null,
+            scenarioStep: activeScenario ? scenarioStep : 0,
+          },
+        }
+      );
       setInput("");
     }
   };
@@ -436,6 +584,20 @@ export default function Home() {
           >
             <Plus size={18} />
             New Chat
+          </button>
+        </div>
+
+        {/* Scenarios Button */}
+        <div className="p-3 pt-0">
+          <button
+            onClick={() => {
+              setScenarioModalOpen(true);
+              setSidebarOpen(false);
+            }}
+            className="w-full flex items-center justify-center gap-2 px-3 py-3 bg-gradient-to-r from-primary/20 to-secondary/20 text-primary rounded text-sm font-medium hover:from-primary/30 hover:to-secondary/30 transition-all min-h-[44px] border border-primary/20"
+          >
+            <Map size={18} />
+            Guided Scenarios
           </button>
         </div>
 
@@ -608,9 +770,23 @@ export default function Home() {
 
         {/* Right Panel - Chat */}
         <div className="flex-1 flex flex-col min-w-0 h-screen lg:h-auto">
+          {/* Scenario Bar - Shows when scenario is active */}
+          {activeScenario && (
+            <div className="lg:sticky lg:top-0 z-20 fixed top-14 left-0 right-0 lg:left-auto lg:right-auto">
+              <ScenarioBar
+                scenario={activeScenario}
+                currentStep={scenarioStep}
+                onNextStep={handleNextStep}
+                onPrevStep={handlePrevStep}
+                onExit={handleExitScenario}
+                isComplete={false}
+              />
+            </div>
+          )}
+
           {/* Mobile Header - FIXED */}
           <header className="lg:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between p-2 border-b border-border bg-card">
-            {/* Left: Menu + New Chat */}
+            {/* Left: Menu + New Chat + Scenarios */}
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setSidebarOpen(true)}
@@ -625,6 +801,15 @@ export default function Home() {
                 aria-label="New chat"
               >
                 <Plus size={22} />
+              </button>
+              <button
+                onClick={() => setScenarioModalOpen(true)}
+                className={`p-2 rounded min-h-[44px] min-w-[44px] flex items-center justify-center ${
+                  activeScenario ? "bg-primary/20 text-primary" : "hover:bg-muted text-muted-foreground"
+                }`}
+                aria-label="Guided scenarios"
+              >
+                <Map size={20} />
               </button>
             </div>
 
@@ -674,8 +859,10 @@ export default function Home() {
             </div>
           </header>
 
-          {/* Chat Messages - with padding for fixed header/footer on mobile */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 pt-16 pb-24 lg:pt-4 lg:pb-4">
+          {/* Chat Messages - with padding for fixed header/footer on mobile and scenario bar */}
+          <div className={`flex-1 overflow-y-auto p-4 space-y-3 pb-24 lg:pb-4 ${
+            activeScenario ? "pt-40 lg:pt-4" : "pt-16 lg:pt-4"
+          }`}>
             {/* Welcome message if no messages */}
             {messages.length === 0 && (
               <div className="text-center py-12">
@@ -830,6 +1017,23 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      {/* Scenario Modal */}
+      <ScenarioModal
+        isOpen={scenarioModalOpen}
+        onClose={() => setScenarioModalOpen(false)}
+        scenarios={scenariosWithProgress}
+        onSelectScenario={handleScenarioSelect}
+      />
+
+      {/* Scenario Complete Celebration */}
+      {showScenarioComplete && activeScenario && (
+        <ScenarioComplete
+          scenario={activeScenario}
+          onClose={handleScenarioCompleteClose}
+          onRestart={handleRestartScenario}
+        />
+      )}
     </div>
   );
 }

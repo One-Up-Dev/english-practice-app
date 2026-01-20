@@ -245,3 +245,76 @@ export function generateProfileContext(profile: UserProfile | null): string {
 
   return lines.join("\n");
 }
+
+// ============================================
+// Scenario Progress (Guided Lessons)
+// ============================================
+
+export interface ScenarioProgress {
+  id: number;
+  session_id: string;
+  scenario_id: string;
+  current_step: number;
+  completed: boolean;
+  started_at: Date;
+  completed_at: Date | null;
+}
+
+export async function getScenarioProgress(
+  sessionId: string,
+  scenarioId: string
+): Promise<ScenarioProgress | null> {
+  const [progress] = await sql`
+    SELECT * FROM scenario_progress
+    WHERE session_id = ${sessionId} AND scenario_id = ${scenarioId}
+  `;
+  return progress as ScenarioProgress | null;
+}
+
+export async function updateScenarioProgress(
+  sessionId: string,
+  scenarioId: string,
+  currentStep: number,
+  completed: boolean = false
+): Promise<void> {
+  const existing = await getScenarioProgress(sessionId, scenarioId);
+
+  if (existing) {
+    if (completed) {
+      await sql`
+        UPDATE scenario_progress SET
+          current_step = ${currentStep},
+          completed = true,
+          completed_at = NOW()
+        WHERE session_id = ${sessionId} AND scenario_id = ${scenarioId}
+      `;
+    } else {
+      await sql`
+        UPDATE scenario_progress SET
+          current_step = ${currentStep}
+        WHERE session_id = ${sessionId} AND scenario_id = ${scenarioId}
+      `;
+    }
+  } else {
+    await sql`
+      INSERT INTO scenario_progress (session_id, scenario_id, current_step, completed)
+      VALUES (${sessionId}, ${scenarioId}, ${currentStep}, ${completed})
+    `;
+  }
+}
+
+export async function getCompletedScenarios(sessionId: string): Promise<string[]> {
+  const results = await sql`
+    SELECT scenario_id FROM scenario_progress
+    WHERE session_id = ${sessionId} AND completed = true
+  `;
+  return results.map((r: { scenario_id: string }) => r.scenario_id);
+}
+
+export async function getAllScenarioProgress(sessionId: string): Promise<ScenarioProgress[]> {
+  const results = await sql`
+    SELECT * FROM scenario_progress
+    WHERE session_id = ${sessionId}
+  `;
+  return results as ScenarioProgress[];
+}
