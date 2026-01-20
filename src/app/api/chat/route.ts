@@ -16,42 +16,6 @@ export const maxDuration = 30;
 const google = createGoogleGenerativeAI({});
 
 // ============================================
-// AVAILABLE MODELS
-// ============================================
-
-export type ModelId = "gemini-2.0-flash" | "gemini-1.5-pro" | "gemini-2.0-flash-thinking";
-
-const MODELS: Record<ModelId, { name: string; description: string; speed: string; cost: string }> = {
-  "gemini-2.0-flash": {
-    name: "Gemini 2.0 Flash",
-    description: "Fast and free - great for practice",
-    speed: "Fast",
-    cost: "Free"
-  },
-  "gemini-1.5-pro": {
-    name: "Gemini 1.5 Pro",
-    description: "Higher quality responses",
-    speed: "Medium",
-    cost: "Paid"
-  },
-  "gemini-2.0-flash-thinking": {
-    name: "Gemini 2.0 Thinking",
-    description: "Deep reasoning for complex questions",
-    speed: "Slow",
-    cost: "Free"
-  }
-};
-
-function getModel(modelId: ModelId) {
-  // Validate model ID
-  if (!MODELS[modelId]) {
-    console.warn(`Unknown model "${modelId}", falling back to gemini-2.0-flash`);
-    modelId = "gemini-2.0-flash";
-  }
-  return google(modelId);
-}
-
-// ============================================
 // SYSTEM PROMPTS - Two modes
 // ============================================
 
@@ -730,8 +694,7 @@ export async function POST(req: Request) {
       level = "beginner",
       category = null,
       scenarioId = null,
-      scenarioStep = 0,
-      model = "gemini-2.0-flash"
+      scenarioStep = 0
     } = await req.json();
 
     console.log("API received messages:", messages);
@@ -741,7 +704,6 @@ export async function POST(req: Request) {
     console.log("Session ID:", sessionId);
     console.log("Scenario ID:", scenarioId);
     console.log("Scenario Step:", scenarioStep);
-    console.log("Model:", model);
 
     // Get auto-configured generation parameters
     const { temperature, maxTokens } = getGenerationParams(correctionMode, category);
@@ -803,7 +765,7 @@ VOCABULARY TO REINFORCE: ${scenario.vocabularyFocus?.join(", ") || "general conv
     }
 
     const result = streamText({
-      model: getModel(model as ModelId),
+      model: google("gemini-2.0-flash"),  // Version gratuite
       system: systemPrompt,
       messages: await convertToModelMessages(messages),
       tools: teacherTools,

@@ -288,32 +288,19 @@ Focus on correcting past_tense errors when appropriate.
 
 ---
 
-### 1.5.6 Choix du Modèle ✅
+### 1.5.6 Choix du Modèle
 > Permettre de changer de modèle IA
 
 **Objectif :** Balance qualité/coût/vitesse
 
-**Implémentation terminée :**
-- [x] Sélecteur de modèle dans la sidebar (accessible à tous)
-- [x] 3 modèles supportés :
+**Todolist :**
+- [ ] Ajouter sélecteur de modèle dans les settings (admin only?)
+- [ ] Supporter plusieurs modèles :
   - `gemini-2.0-flash` (défaut, gratuit, rapide)
   - `gemini-1.5-pro` (meilleur, payant)
   - `gemini-2.0-flash-thinking` (raisonnement, lent)
-- [x] Indicateurs du modèle actuel (desktop + mobile)
-- [x] Préférence sauvegardée en localStorage
-- [x] Logs du modèle utilisé côté serveur
-
-**UI :**
-
-| Modèle | Label | Badge | Description |
-|--------|-------|-------|-------------|
-| gemini-2.0-flash | Flash 2.0 | Free (vert) | Fast & Free |
-| gemini-1.5-pro | Pro 1.5 | Paid (orange) | Higher Quality |
-| gemini-2.0-flash-thinking | Thinking | Slow (violet) | Deep Reasoning |
-
-**Fichiers modifiés :**
-- `src/app/api/chat/route.ts` - MODELS config, getModel(), paramètre model
-- `src/app/page.tsx` - State, sélecteur, indicateurs desktop/mobile
+- [ ] Afficher le modèle actuel
+- [ ] Logger l'usage par modèle pour le coût
 
 ---
 
@@ -642,7 +629,6 @@ Correction: "went" instead of "go"
 ## Changelog
 
 ### 20 Janvier 2026
-- ✅ **1.5.6 Choix du Modèle** - Sélecteur pour Flash/Pro/Thinking avec indicateurs
 - ✅ **4.1 Scénarios Guidés** - 12 leçons structurées avec progression persistante
 
 ### 19 Janvier 2026

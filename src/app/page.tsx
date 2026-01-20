@@ -23,7 +23,6 @@ import {
   PenLine,
   GraduationCap,
   Map,
-  Cpu,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CorrectionHighlight } from "@/components/CorrectionHighlight";
@@ -60,17 +59,6 @@ export default function Home() {
   const [activeScenario, setActiveScenario] = useState<Scenario | null>(null);
   const [scenarioStep, setScenarioStep] = useState(0);
   const [showScenarioComplete, setShowScenarioComplete] = useState(false);
-
-  // AI Model selection
-  type ModelId = "gemini-2.0-flash" | "gemini-1.5-pro" | "gemini-2.0-flash-thinking";
-  const [selectedModel, setSelectedModel] = useState<ModelId>("gemini-2.0-flash");
-
-  // Model options for UI
-  const modelOptions: { id: ModelId; label: string; shortLabel: string; description: string; badge: string; badgeColor: string }[] = [
-    { id: "gemini-2.0-flash", label: "Flash 2.0", shortLabel: "Flash", description: "Fast & Free", badge: "Free", badgeColor: "bg-green-500/20 text-green-500" },
-    { id: "gemini-1.5-pro", label: "Pro 1.5", shortLabel: "Pro", description: "Higher Quality", badge: "Paid", badgeColor: "bg-amber-500/20 text-amber-500" },
-    { id: "gemini-2.0-flash-thinking", label: "Thinking", shortLabel: "Think", description: "Deep Reasoning", badge: "Slow", badgeColor: "bg-purple-500/20 text-purple-500" },
-  ];
 
   // useChat hook with new API
   const { messages, sendMessage, status, error, setMessages } = useChat({
@@ -242,20 +230,6 @@ export default function Home() {
         console.error("Error updating level in profile:", e);
       }
     }
-  };
-
-  // Load model preference from localStorage on mount
-  useEffect(() => {
-    const savedModel = localStorage.getItem("english-practice-model");
-    if (savedModel && ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-2.0-flash-thinking"].includes(savedModel)) {
-      setSelectedModel(savedModel as ModelId);
-    }
-  }, []);
-
-  // Update model preference
-  const updateModel = (newModel: ModelId) => {
-    setSelectedModel(newModel);
-    localStorage.setItem("english-practice-model", newModel);
   };
 
   // Scroll to bottom when new messages arrive
@@ -512,7 +486,6 @@ export default function Home() {
             category: activeScenario?.category || selectedCategory,
             scenarioId: activeScenario?.id || null,
             scenarioStep: activeScenario ? scenarioStep : 0,
-            model: selectedModel,
           },
         }
       );
@@ -691,33 +664,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* AI Model Selector */}
-          <div className="px-3 py-2">
-            <div className="flex items-center gap-2 mb-2">
-              <Cpu size={16} className="text-muted-foreground" />
-              <p className="text-xs text-muted-foreground">AI Model</p>
-            </div>
-            <div className="flex gap-1">
-              {modelOptions.map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() => updateModel(option.id)}
-                  className={`flex-1 px-2 py-1.5 text-xs rounded transition-colors ${
-                    selectedModel === option.id
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                  title={option.description}
-                >
-                  {option.shortLabel}
-                </button>
-              ))}
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-1 text-center">
-              {modelOptions.find(m => m.id === selectedModel)?.description}
-            </p>
-          </div>
-
           {/* Voice Toggle */}
           <button
             onClick={() => setVoiceEnabled(!voiceEnabled)}
@@ -808,14 +754,6 @@ export default function Home() {
             {level.charAt(0).toUpperCase() + level.slice(1)} Level
           </div>
 
-          {/* Model indicator on desktop */}
-          <div className={`mt-2 px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 ${
-            modelOptions.find(m => m.id === selectedModel)?.badgeColor || "bg-muted text-muted-foreground"
-          }`}>
-            <Cpu size={12} />
-            {modelOptions.find(m => m.id === selectedModel)?.label}
-          </div>
-
           {/* Mic button */}
           <button
             onClick={isListening ? stopListening : startListening}
@@ -903,13 +841,6 @@ export default function Home() {
                   : "bg-red-500/20 text-red-500"
               }`}>
                 {level === "beginner" ? "B" : level === "intermediate" ? "I" : "A"}
-              </span>
-              {/* Model indicator */}
-              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium flex items-center gap-0.5 ${
-                modelOptions.find(m => m.id === selectedModel)?.badgeColor || "bg-muted text-muted-foreground"
-              }`}>
-                <Cpu size={10} />
-                {modelOptions.find(m => m.id === selectedModel)?.shortLabel.charAt(0)}
               </span>
             </div>
 
