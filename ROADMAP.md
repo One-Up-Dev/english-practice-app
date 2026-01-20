@@ -332,52 +332,7 @@ Focus on correcting past_tense errors when appropriate.
 
 ---
 
-### 1.5.8 Emotion Tags System ✅
-> Balises d'émotion cachées pour enrichir les réponses
-
-**Objectif :** Permettre à l'IA d'exprimer des émotions sans polluer le texte/TTS
-
-**Implémentation terminée :**
-- [x] 13 emotion tags supportés
-- [x] Parsing et extraction des émotions
-- [x] Filtrage avant affichage et TTS
-- [x] Nettoyage markdown (*bold*, **italic**) pour TTS
-- [x] Suppression des labels de rôle (Waiter:, etc.)
-
-**Emotion Tags disponibles :**
-| Tag | Usage |
-|-----|-------|
-| `<laugh>` | Rire franc |
-| `<chuckle>` | Petit rire |
-| `<giggle>` | Rire joueur |
-| `<sigh>` | Soupir |
-| `<excited>` | Enthousiasme |
-| `<surprised>` | Surprise |
-| `<curious>` | Curiosité |
-| `<thinking>` | Réflexion |
-| `<empathetic>` | Empathie |
-| `<proud>` | Fierté |
-| `<playful>` | Taquin |
-| `<warm>` | Chaleureux |
-| `<impressed>` | Impressionné |
-
-**Exemple :**
-```
-Input IA: "<laugh> Ha! That's hilarious! I can't believe you did that."
-Affiché:  "Ha! That's hilarious! I can't believe you did that."
-```
-
-**Fichiers créés/modifiés :**
-- `src/lib/emotions.ts` - Parsing et filtrage
-- `src/app/page.tsx` - Intégration dans l'affichage et TTS
-- `src/app/api/chat/route.ts` - Instructions emotion tags dans le prompt
-
-**Documentation :**
-- `prompts/` - Dossier avec tous les prompts documentés en markdown
-
----
-
-### 1.5.9 Mode Correction Amélioré ✅
+### 1.5.8 Mode Correction Amélioré ✅
 > Emma en teacher mode avec focus sur les erreurs francophones
 
 **Objectif :** Améliorer le comportement d'Emma en mode correction avec explications adaptées aux francophones
@@ -388,7 +343,6 @@ Affiché:  "Ha! That's hilarious! I can't believe you did that."
 - [x] Erreurs de structure FR→EN (I have 25 years, It depends of, Since 3 years, etc.)
 - [x] Comparaisons avec le français dans les explications
 - [x] Règles de priorisation (max 2-3 corrections si beaucoup d'erreurs)
-- [x] Emotion tags (<proud>, <warm>, <excited>, <empathetic>)
 
 **Format de correction (inchangé, parsé visuellement) :**
 ```
@@ -743,11 +697,10 @@ Correction: "went" instead of "go"
 ## Changelog
 
 ### 20 Janvier 2026 (suite 2)
-- ✅ **1.5.9 Mode Correction Amélioré** - Emma en teacher mode, faux amis FR, erreurs structure FR→EN, comparaisons françaises
+- ✅ **1.5.8 Mode Correction Amélioré** - Emma en teacher mode, faux amis FR, erreurs structure FR→EN, comparaisons françaises
 
 ### 20 Janvier 2026 (suite)
 - ✅ **Emma Persona** - Remplacement de l'IA générique par Emma, journaliste freelance 28 ans à NYC
-- ✅ **Emotion Tags** - Système de balises d'émotion (`<laugh>`, `<excited>`, etc.) filtrées avant affichage/TTS
 - ✅ **TTS Cleanup** - Suppression automatique des astérisques, markdown et labels de rôle pour le TTS
 - ✅ **Documentation Prompts** - Dossier `prompts/` avec tous les prompts documentés en markdown
 - 🔀 **ElevenLabs TTS** - Branche `feat/elevenlabs-streaming` avec TTS premium et streaming audio

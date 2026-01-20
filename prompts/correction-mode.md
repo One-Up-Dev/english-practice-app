@@ -1,6 +1,6 @@
 # Mode Correction
 
-**Fichier source** : `src/app/api/chat/route.ts` - ligne 162
+**Fichier source** : `src/app/api/chat/route.ts`
 
 ## Description
 
@@ -33,7 +33,7 @@ Why: Explication amicale avec comparaison française si utile.
 
 **Réponse Emma :**
 ```
-<warm> Oh nice, a movie night!
+Oh nice, a movie night!
 
 You said: 'I go to the cinema yesterday'
 Correct form: 'I went to the cinema yesterday'
@@ -55,19 +55,13 @@ What movie did you see? I'm always looking for recommendations!
 ### Emma en mode prof
 - Garde sa personnalité (chaleureuse, encourageante)
 - Peut sympathiser avec l'apprentissage (elle apprend l'espagnol)
-- Utilise les emotion tags (<warm>, <proud>, etc.)
+- Parle naturellement avec émotions exprimées en mots ("Ha!", "Oh wow!")
 
 ### Structure de réponse
 1. Réaction chaleureuse à ce qu'ils ont dit
 2. Corrections au format parseable (You said / Correct form / Why)
 3. Célébration de ce qui était correct
 4. Question de suivi pour continuer
-
-### Emotion Tags
-- `<warm>` - pour encourager après une erreur
-- `<proud>` - quand ils réussissent
-- `<excited>` - quand ils montrent des progrès
-- `<empathetic>` - quand ils galèrent
 
 ---
 
@@ -113,16 +107,3 @@ Priorité : sens > temps verbaux > structure > articles/prépositions
 |---------|------|
 | `src/app/api/chat/route.ts` | CORRECTION_PROMPT |
 | `src/components/CorrectionHighlight.tsx` | Parser + rendu visuel rouge/vert |
-| `src/lib/emotions.ts` | Strip emotion tags pour affichage/TTS |
-
----
-
-## Changelog
-
-- **v2.0** (Jan 2024) : Amélioration avec Emma
-  - Emma en teacher mode (garde sa personnalité)
-  - Focus sur les erreurs spécifiques aux francophones
-  - Faux amis et erreurs de structure FR→EN
-  - Comparaisons avec le français dans les explications
-  - Règles de priorisation
-  - Emotion tags pour garder la chaleur

@@ -894,13 +894,9 @@ export default function Home() {
 
             {/* Messages */}
             {messages.map((message) => {
-              // Get raw text
+              // Get raw text for display (used directly, no processing needed)
               const rawText = getMessageText(message);
-              // For display: only strip emotion tags, preserve newlines for correction parsing
-              const displayText = message.role === "assistant"
-                ? rawText.replace(/<(laugh|chuckle|giggle|sigh|excited|surprised|curious|thinking|empathetic|proud|playful|warm|impressed)\s*\/?>/gi, '').trim()
-                : rawText;
-              // For TTS: use stripEmotions which cleans up for speech
+              // For TTS: clean up markdown and role labels
               const ttsText = message.role === "assistant"
                 ? stripEmotions(rawText)
                 : rawText;
@@ -936,13 +932,13 @@ export default function Home() {
                     {/* Render with correction highlighting in Correction Mode, plain text otherwise */}
                     {message.role === "assistant" && correctionMode ? (
                       <div className="text-card-foreground">
-                        <CorrectionHighlight text={displayText} />
+                        <CorrectionHighlight text={rawText} />
                       </div>
                     ) : (
                       <p className={`text-sm whitespace-pre-wrap ${
                         message.role === "user" ? "text-primary-foreground" : "text-card-foreground"
                       }`}>
-                        {displayText}
+                        {rawText}
                       </p>
                     )}
                   </div>
