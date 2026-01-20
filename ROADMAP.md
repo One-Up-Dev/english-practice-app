@@ -304,6 +304,79 @@ Focus on correcting past_tense errors when appropriate.
 
 ---
 
+### 1.5.7 Persona Immersive : Emma ✅
+> Remplacer l'IA générique par un personnage avec personnalité
+
+**Objectif :** Créer une expérience de conversation plus naturelle et engageante
+
+**Implémentation terminée :**
+- [x] Personnage Emma (28 ans, journaliste freelance, Brooklyn NYC)
+- [x] Backstory détaillé (chat Mochi, café Ground Floor, article sur Queens)
+- [x] Style conversationnel American English avec expressions casual
+- [x] Réactions émotionnelles adaptées au contexte
+- [x] Partage personnel naturel (vie quotidienne, opinions, expériences)
+- [x] Mémoire des détails partagés par l'utilisateur
+
+**Profil Emma :**
+| Aspect | Détail |
+|--------|--------|
+| Nom | Emma, 28 ans |
+| Métier | Journaliste freelance (magazines voyage/culture) |
+| Lieu | Brooklyn, près de Prospect Park |
+| Personnalité | Chaleureuse, curieuse, drôle |
+| Hobbies | Coffee shops, documentaires, farmers markets |
+| Particularité | Apprend l'espagnol sur Duolingo |
+
+**Fichiers modifiés :**
+- `src/app/api/chat/route.ts` - Nouveau CONVERSATION_PROMPT avec persona Emma
+
+---
+
+### 1.5.8 Emotion Tags System ✅
+> Balises d'émotion cachées pour enrichir les réponses
+
+**Objectif :** Permettre à l'IA d'exprimer des émotions sans polluer le texte/TTS
+
+**Implémentation terminée :**
+- [x] 13 emotion tags supportés
+- [x] Parsing et extraction des émotions
+- [x] Filtrage avant affichage et TTS
+- [x] Nettoyage markdown (*bold*, **italic**) pour TTS
+- [x] Suppression des labels de rôle (Waiter:, etc.)
+
+**Emotion Tags disponibles :**
+| Tag | Usage |
+|-----|-------|
+| `<laugh>` | Rire franc |
+| `<chuckle>` | Petit rire |
+| `<giggle>` | Rire joueur |
+| `<sigh>` | Soupir |
+| `<excited>` | Enthousiasme |
+| `<surprised>` | Surprise |
+| `<curious>` | Curiosité |
+| `<thinking>` | Réflexion |
+| `<empathetic>` | Empathie |
+| `<proud>` | Fierté |
+| `<playful>` | Taquin |
+| `<warm>` | Chaleureux |
+| `<impressed>` | Impressionné |
+
+**Exemple :**
+```
+Input IA: "<laugh> Ha! That's hilarious! I can't believe you did that."
+Affiché:  "Ha! That's hilarious! I can't believe you did that."
+```
+
+**Fichiers créés/modifiés :**
+- `src/lib/emotions.ts` - Parsing et filtrage
+- `src/app/page.tsx` - Intégration dans l'affichage et TTS
+- `src/app/api/chat/route.ts` - Instructions emotion tags dans le prompt
+
+**Documentation :**
+- `prompts/` - Dossier avec tous les prompts documentés en markdown
+
+---
+
 ## Phase 2 : Engagement & Gamification (Impact Élevé / Effort Moyen)
 
 ### 2.1 Streak Counter
@@ -404,17 +477,32 @@ CREATE TABLE user_streaks (
 
 ---
 
-### 3.3 Choix de Voix/Accent
-> British, American, Australian
+### 3.3 Choix de Voix/Accent ✅ (Partiel)
+> British, American, Australian + ElevenLabs Premium
 
-**Objectif :** S'entraîner avec différents accents
+**Objectif :** S'entraîner avec différents accents et voix de qualité
 
-**Todolist :**
-- [ ] Lister les voix disponibles avec `speechSynthesis.getVoices()`
-- [ ] Filtrer les voix anglaises (en-US, en-GB, en-AU)
-- [ ] Créer un sélecteur dans les settings
-- [ ] Sauvegarder la préférence
-- [ ] Afficher le nom de l'accent actuel
+**Implémentation partielle :**
+- [x] ElevenLabs TTS avec streaming audio (branche `feat/elevenlabs-streaming`)
+- [x] Fallback vers Web Speech API si ElevenLabs non configuré
+- [ ] Sélecteur de voix dans l'interface (à faire)
+- [ ] Support multi-accents (à faire)
+
+**Branche disponible :** `feat/elevenlabs-streaming`
+
+**Configuration ElevenLabs :**
+```env
+ELEVENLABS_API_KEY=...
+ELEVENLABS_VOICE_ID=...  # Optionnel, défaut: Rachel
+```
+
+**Voix recommandées :**
+| Voix | ID | Style |
+|------|-----|-------|
+| Rachel | 21m00Tcm4TlvDq8ikWAM | Calme, naturelle |
+| Bella | EXAVITQu4vr4xnSDxMaL | Douce, amicale |
+
+**Note :** ElevenLabs est payant (~$5/mois pour 30k caractères). La branche reste séparée pour éviter les coûts imprévus.
 
 ---
 
@@ -627,6 +715,13 @@ Correction: "went" instead of "go"
 ---
 
 ## Changelog
+
+### 20 Janvier 2026 (suite)
+- ✅ **Emma Persona** - Remplacement de l'IA générique par Emma, journaliste freelance 28 ans à NYC
+- ✅ **Emotion Tags** - Système de balises d'émotion (`<laugh>`, `<excited>`, etc.) filtrées avant affichage/TTS
+- ✅ **TTS Cleanup** - Suppression automatique des astérisques, markdown et labels de rôle pour le TTS
+- ✅ **Documentation Prompts** - Dossier `prompts/` avec tous les prompts documentés en markdown
+- 🔀 **ElevenLabs TTS** - Branche `feat/elevenlabs-streaming` avec TTS premium et streaming audio
 
 ### 20 Janvier 2026
 - ✅ **4.1 Scénarios Guidés** - 12 leçons structurées avec progression persistante
