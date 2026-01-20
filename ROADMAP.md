@@ -296,9 +296,9 @@ Focus on correcting past_tense errors when appropriate.
 **Implémentation terminée :**
 - [x] Sélecteur de modèle dans la sidebar (accessible à tous)
 - [x] 3 modèles supportés :
-  - `gemini-2.0-flash` (défaut, rapide)
-  - `gemini-2.5-flash` (meilleur, avec raisonnement)
-  - `gemini-2.5-pro` (meilleure qualité, raisonnement approfondi)
+  - `gemini-2.0-flash` (défaut, gratuit, rapide)
+  - `gemini-1.5-pro` (meilleur, payant)
+  - `gemini-2.0-flash-thinking` (raisonnement, lent)
 - [x] Indicateurs du modèle actuel (desktop + mobile)
 - [x] Préférence sauvegardée en localStorage
 - [x] Logs du modèle utilisé côté serveur
@@ -307,9 +307,9 @@ Focus on correcting past_tense errors when appropriate.
 
 | Modèle | Label | Badge | Description |
 |--------|-------|-------|-------------|
-| gemini-2.0-flash | Flash 2.0 | Fast (vert) | Fast & Free |
-| gemini-2.5-flash | Flash 2.5 | New (bleu) | Better + Reasoning |
-| gemini-2.5-pro | Pro 2.5 | Best (violet) | Best Quality |
+| gemini-2.0-flash | Flash 2.0 | Free (vert) | Fast & Free |
+| gemini-1.5-pro | Pro 1.5 | Paid (orange) | Higher Quality |
+| gemini-2.0-flash-thinking | Thinking | Slow (violet) | Deep Reasoning |
 
 **Fichiers modifiés :**
 - `src/app/api/chat/route.ts` - MODELS config, getModel(), paramètre model
