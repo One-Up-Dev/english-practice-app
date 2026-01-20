@@ -19,7 +19,7 @@ const google = createGoogleGenerativeAI({});
 // AVAILABLE MODELS
 // ============================================
 
-export type ModelId = "gemini-2.0-flash" | "gemini-1.5-pro" | "gemini-2.0-flash-thinking";
+export type ModelId = "gemini-2.0-flash" | "gemini-2.5-flash" | "gemini-2.5-pro";
 
 const MODELS: Record<ModelId, { name: string; description: string; speed: string; cost: string }> = {
   "gemini-2.0-flash": {
@@ -28,15 +28,15 @@ const MODELS: Record<ModelId, { name: string; description: string; speed: string
     speed: "Fast",
     cost: "Free"
   },
-  "gemini-1.5-pro": {
-    name: "Gemini 1.5 Pro",
-    description: "Higher quality responses",
+  "gemini-2.5-flash": {
+    name: "Gemini 2.5 Flash",
+    description: "Better quality with reasoning",
     speed: "Medium",
-    cost: "Paid"
+    cost: "Free"
   },
-  "gemini-2.0-flash-thinking": {
-    name: "Gemini 2.0 Thinking",
-    description: "Deep reasoning for complex questions",
+  "gemini-2.5-pro": {
+    name: "Gemini 2.5 Pro",
+    description: "Best quality, deep reasoning",
     speed: "Slow",
     cost: "Free"
   }

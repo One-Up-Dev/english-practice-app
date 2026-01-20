@@ -62,14 +62,14 @@ export default function Home() {
   const [showScenarioComplete, setShowScenarioComplete] = useState(false);
 
   // AI Model selection
-  type ModelId = "gemini-2.0-flash" | "gemini-1.5-pro" | "gemini-2.0-flash-thinking";
+  type ModelId = "gemini-2.0-flash" | "gemini-2.5-flash" | "gemini-2.5-pro";
   const [selectedModel, setSelectedModel] = useState<ModelId>("gemini-2.0-flash");
 
   // Model options for UI
   const modelOptions: { id: ModelId; label: string; shortLabel: string; description: string; badge: string; badgeColor: string }[] = [
-    { id: "gemini-2.0-flash", label: "Flash 2.0", shortLabel: "Flash", description: "Fast & Free", badge: "Free", badgeColor: "bg-green-500/20 text-green-500" },
-    { id: "gemini-1.5-pro", label: "Pro 1.5", shortLabel: "Pro", description: "Higher Quality", badge: "Paid", badgeColor: "bg-amber-500/20 text-amber-500" },
-    { id: "gemini-2.0-flash-thinking", label: "Thinking", shortLabel: "Think", description: "Deep Reasoning", badge: "Slow", badgeColor: "bg-purple-500/20 text-purple-500" },
+    { id: "gemini-2.0-flash", label: "Flash 2.0", shortLabel: "2.0", description: "Fast & Free", badge: "Fast", badgeColor: "bg-green-500/20 text-green-500" },
+    { id: "gemini-2.5-flash", label: "Flash 2.5", shortLabel: "2.5", description: "Better + Reasoning", badge: "New", badgeColor: "bg-blue-500/20 text-blue-500" },
+    { id: "gemini-2.5-pro", label: "Pro 2.5", shortLabel: "Pro", description: "Best Quality", badge: "Best", badgeColor: "bg-purple-500/20 text-purple-500" },
   ];
 
   // useChat hook with new API
@@ -247,7 +247,7 @@ export default function Home() {
   // Load model preference from localStorage on mount
   useEffect(() => {
     const savedModel = localStorage.getItem("english-practice-model");
-    if (savedModel && ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-2.0-flash-thinking"].includes(savedModel)) {
+    if (savedModel && ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-2.5-pro"].includes(savedModel)) {
       setSelectedModel(savedModel as ModelId);
     }
   }, []);
