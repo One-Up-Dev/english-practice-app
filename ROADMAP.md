@@ -32,10 +32,10 @@ Plan d'implémentation des améliorations UX, organisé par catégorie d'impact.
 | Conversation | `MessageCircle` | Bleu | Corrections subtiles (méthode "sandwich") |
 | Correction | `PenLine` | Orange | Corrections explicites avec format structuré |
 
-**Format Mode Correction :**
+**Format Mode Correction :** (voir 1.5.9 pour détails complets)
 ```
-You said: "I go to the cinema yesterday"
-Correct form: "I went to the cinema yesterday"
+You said: 'I go to the cinema yesterday'
+Correct form: 'I went to the cinema yesterday'
 Why: Use past tense 'went' for actions that happened in the past.
 ```
 
@@ -377,6 +377,32 @@ Affiché:  "Ha! That's hilarious! I can't believe you did that."
 
 ---
 
+### 1.5.9 Mode Correction Amélioré ✅
+> Emma en teacher mode avec focus sur les erreurs francophones
+
+**Objectif :** Améliorer le comportement d'Emma en mode correction avec explications adaptées aux francophones
+
+**Implémentation terminée :**
+- [x] Emma en "teacher mode" (garde sa personnalité chaleureuse)
+- [x] Liste des faux amis courants (actually, eventually, library, attend, sensible, etc.)
+- [x] Erreurs de structure FR→EN (I have 25 years, It depends of, Since 3 years, etc.)
+- [x] Comparaisons avec le français dans les explications
+- [x] Règles de priorisation (max 2-3 corrections si beaucoup d'erreurs)
+- [x] Emotion tags (<proud>, <warm>, <excited>, <empathetic>)
+
+**Format de correction (inchangé, parsé visuellement) :**
+```
+You said: 'I go to the cinema yesterday'
+Correct form: 'I went to the cinema yesterday'
+Why: Past tense needed! In French you'd use passé composé, but English just needs 'went'.
+```
+
+**Fichiers modifiés :**
+- `src/app/api/chat/route.ts` - CORRECTION_PROMPT amélioré
+- `prompts/correction-mode.md` - Documentation mise à jour
+
+---
+
 ## Phase 2 : Engagement & Gamification (Impact Élevé / Effort Moyen)
 
 ### 2.1 Streak Counter
@@ -715,6 +741,9 @@ Correction: "went" instead of "go"
 ---
 
 ## Changelog
+
+### 20 Janvier 2026 (suite 2)
+- ✅ **1.5.9 Mode Correction Amélioré** - Emma en teacher mode, faux amis FR, erreurs structure FR→EN, comparaisons françaises
 
 ### 20 Janvier 2026 (suite)
 - ✅ **Emma Persona** - Remplacement de l'IA générique par Emma, journaliste freelance 28 ans à NYC

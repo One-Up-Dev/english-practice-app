@@ -74,12 +74,14 @@ export function parseEmotions(text: string): ParsedMessage {
 }
 
 /**
- * Strip emotion tags and clean text for TTS (text-to-speech)
+ * Strip emotion tags and clean text for display
  * Removes:
  * - Emotion tags like <laugh>, <excited>
  * - Markdown formatting: **bold**, *italic*, ***bold italic***
  * - Action descriptions: *laughs*, *smiles*
  * - Role labels: "Waiter:", "Emma:"
+ *
+ * IMPORTANT: Preserves newlines for correction format parsing!
  */
 export function stripEmotions(text: string): string {
   let cleanText = parseEmotions(text).cleanText;
@@ -96,9 +98,11 @@ export function stripEmotions(text: string): string {
   cleanText = cleanText
     .replace(/^[A-Z][a-z]+:\s*/gm, '')       // "Waiter: Hello" → "Hello"
 
-  // Clean up extra whitespace
+  // Clean up extra spaces/tabs BUT PRESERVE NEWLINES (needed for correction parsing)
   cleanText = cleanText
-    .replace(/\s+/g, ' ')
+    .replace(/[^\S\n]+/g, ' ')               // Replace spaces/tabs with single space, keep \n
+    .replace(/ \n/g, '\n')                   // Remove trailing spaces before newlines
+    .replace(/\n /g, '\n')                   // Remove leading spaces after newlines
     .trim();
 
   return cleanText;

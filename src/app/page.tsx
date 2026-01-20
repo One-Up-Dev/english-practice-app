@@ -894,9 +894,14 @@ export default function Home() {
 
             {/* Messages */}
             {messages.map((message) => {
-              // Get raw text, then strip emotion tags for assistant messages
+              // Get raw text
               const rawText = getMessageText(message);
-              const cleanText = message.role === "assistant"
+              // For display: only strip emotion tags, preserve newlines for correction parsing
+              const displayText = message.role === "assistant"
+                ? rawText.replace(/<(laugh|chuckle|giggle|sigh|excited|surprised|curious|thinking|empathetic|proud|playful|warm|impressed)\s*\/?>/gi, '').trim()
+                : rawText;
+              // For TTS: use stripEmotions which cleans up for speech
+              const ttsText = message.role === "assistant"
                 ? stripEmotions(rawText)
                 : rawText;
               return (
@@ -919,7 +924,7 @@ export default function Home() {
                         <span className="text-xs font-medium text-primary">Teacher</span>
                         {voiceEnabled && (
                           <button
-                            onClick={() => speakText(cleanText)}
+                            onClick={() => speakText(ttsText)}
                             className="text-muted-foreground hover:text-primary transition-colors ml-auto p-1"
                             title="Listen again"
                           >
@@ -931,13 +936,13 @@ export default function Home() {
                     {/* Render with correction highlighting in Correction Mode, plain text otherwise */}
                     {message.role === "assistant" && correctionMode ? (
                       <div className="text-card-foreground">
-                        <CorrectionHighlight text={cleanText} />
+                        <CorrectionHighlight text={displayText} />
                       </div>
                     ) : (
                       <p className={`text-sm whitespace-pre-wrap ${
                         message.role === "user" ? "text-primary-foreground" : "text-card-foreground"
                       }`}>
-                        {cleanText}
+                        {displayText}
                       </p>
                     )}
                   </div>
