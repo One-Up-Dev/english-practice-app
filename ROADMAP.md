@@ -434,34 +434,68 @@ CREATE TABLE user_streaks (
 
 ## Phase 4 : Contenu Structuré (Impact Moyen / Effort Élevé)
 
-### 4.1 Scénarios Guidés
+### 4.1 Scénarios Guidés ✅
 > Leçons structurées par thème
 
 **Objectif :** Apprentissage progressif et structuré
 
-**Todolist :**
-- [ ] Créer une structure de données pour les scénarios :
-  ```ts
-  interface Scenario {
-    id: string;
-    category: 'travel' | 'roleplay' | 'conversation' | 'quiz';
-    title: string;
-    description: string;
-    difficulty: 'beginner' | 'intermediate' | 'advanced';
-    steps: ScenarioStep[];
-  }
-  ```
-- [ ] Écrire 3 scénarios par catégorie (12 total)
-- [ ] Créer une page `/scenarios` avec liste des scénarios
-- [ ] Modifier le chat pour suivre les étapes du scénario
-- [ ] Indicateur de progression dans le scénario
-- [ ] Badge "Completed" quand terminé
+**Implémentation terminée :**
+- [x] Structure de données pour les scénarios avec types TypeScript
+- [x] 12 scénarios écrits (3 par catégorie)
+- [x] Modal de sélection (pas de page séparée - intégré au chat)
+- [x] Chat modifié pour injecter le contexte du scénario
+- [x] Bandeau de progression avec navigation Prev/Next
+- [x] Badge "Completed" et célébration animée
+- [x] Progression sauvegardée en DB (reprend où on en était)
 
-**Exemples de scénarios :**
-- Travel: "Checking in at the airport"
-- Role Play: "Job interview for a developer position"
-- Conversation: "Making small talk at a party"
-- Quiz: "Common irregular verbs"
+**Architecture choisie : Option A - Overlay au Chat**
+- Pas de nouvelle page `/scenarios`
+- Les scénarios s'intègrent dans le chat existant
+- Réutilise l'infrastructure (voice, corrections, niveau, etc.)
+
+**12 Scénarios implémentés :**
+
+| Catégorie | Scénario | Difficulté | Étapes |
+|-----------|----------|------------|--------|
+| **Travel** | At the Airport | Beginner | 5 |
+| | Checking into a Hotel | Beginner | 4 |
+| | Ordering at a Restaurant | Beginner | 5 |
+| **Role Play** | Job Interview | Intermediate | 5 |
+| | Doctor's Appointment | Intermediate | 5 |
+| | Phone Call to Customer Service | Intermediate | 5 |
+| **Conversation** | Meeting Someone New | Beginner | 5 |
+| | Talking About Your Weekend | Beginner | 4 |
+| | Making Plans with a Friend | Beginner | 4 |
+| **Quiz** | Irregular Verbs Challenge | Beginner | 5 |
+| | Prepositions Master | Intermediate | 5 |
+| | Vocabulary Expansion | Intermediate | 5 |
+
+**Schema DB :**
+```sql
+CREATE TABLE scenario_progress (
+  id SERIAL PRIMARY KEY,
+  session_id UUID REFERENCES sessions(id),
+  scenario_id VARCHAR(50) NOT NULL,
+  current_step INTEGER DEFAULT 0,
+  completed BOOLEAN DEFAULT FALSE,
+  started_at TIMESTAMP DEFAULT NOW(),
+  completed_at TIMESTAMP,
+  UNIQUE(session_id, scenario_id)
+);
+```
+
+**Fichiers créés :**
+- `src/lib/scenarios.ts` - Types + 12 scénarios statiques
+- `src/app/api/scenarios/route.ts` - GET scénarios avec progress
+- `src/app/api/scenarios/progress/route.ts` - GET/POST progress
+- `src/components/ScenarioModal.tsx` - Modal de sélection
+- `src/components/ScenarioBar.tsx` - Bandeau + célébration
+
+**Fichiers modifiés :**
+- `src/lib/db.ts` - Fonctions scenario progress
+- `src/app/api/db/setup/route.ts` - Table scenario_progress
+- `src/app/api/chat/route.ts` - Injection contexte scénario
+- `src/app/page.tsx` - État scénario, UI modal/bar
 
 ---
 
@@ -588,11 +622,14 @@ Correction: "went" instead of "go"
 
 ---
 
-*Dernière mise à jour: 19 Janvier 2026*
+*Dernière mise à jour: 20 Janvier 2026*
 
 ---
 
 ## Changelog
+
+### 20 Janvier 2026
+- ✅ **4.1 Scénarios Guidés** - 12 leçons structurées avec progression persistante
 
 ### 19 Janvier 2026
 - ❌ **3.1 Mode Conversation Continue** - Feature retirée (bugs Web Speech API)
