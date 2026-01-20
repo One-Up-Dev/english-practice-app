@@ -29,6 +29,7 @@ import { CorrectionHighlight } from "@/components/CorrectionHighlight";
 import { ScenarioModal } from "@/components/ScenarioModal";
 import { ScenarioBar, ScenarioComplete } from "@/components/ScenarioBar";
 import { Scenario } from "@/lib/scenarios";
+import { stripEmotions } from "@/lib/emotions";
 
 export default function Home() {
   // Session management
@@ -246,10 +247,11 @@ export default function Home() {
       // Don't re-speak if this message was already spoken
       if (lastSpokenMessageId.current === lastMessage.id) return;
 
-      const text = getMessageText(lastMessage);
-      if (text) {
+      const rawText = getMessageText(lastMessage);
+      const cleanText = stripEmotions(rawText); // Remove emotion tags before speaking
+      if (cleanText) {
         lastSpokenMessageId.current = lastMessage.id;
-        speakText(text);
+        speakText(cleanText);
       }
     }
   }, [messages, status, voiceEnabled, getMessageText]);
@@ -892,9 +894,11 @@ export default function Home() {
 
             {/* Messages */}
             {messages.map((message) => {
+              // Get raw text, then strip emotion tags for assistant messages
+              const rawText = getMessageText(message);
               const cleanText = message.role === "assistant"
-                ? getMessageText(message)
-                : getMessageText(message);
+                ? stripEmotions(rawText)
+                : rawText;
               return (
                 <div
                   key={message.id}
